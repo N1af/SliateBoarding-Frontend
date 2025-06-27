@@ -1,9 +1,8 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { X, CheckCircle, XCircle, Clock, Fingerprint, Shield, AlertCircle } from 'lucide-react';
+import { X, CheckCircle, XCircle, Clock, Fingerprint, Shield, AlertCircle, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface AttendanceMarkingModalProps {
