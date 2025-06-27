@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,12 +14,17 @@ import {
   Search,
   Filter
 } from 'lucide-react';
+import AttendanceMarkingModal from './AttendanceMarkingModal';
+import { useToast } from '@/hooks/use-toast';
 
 const AttendanceManagement: React.FC = () => {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [searchTerm, setSearchTerm] = useState('');
+  const [showMarkingModal, setShowMarkingModal] = useState(false);
+  const [showFingerprintSetup, setShowFingerprintSetup] = useState(false);
+  const { toast } = useToast();
 
-  const attendanceData = [
+  const [attendanceData, setAttendanceData] = useState([
     {
       id: 'ST001',
       name: 'Ahmed Hassan',
@@ -57,13 +61,29 @@ const AttendanceManagement: React.FC = () => {
       status: 'late',
       method: 'fingerprint'
     }
-  ];
+  ]);
 
   const filteredAttendance = attendanceData.filter(record =>
     record.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     record.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
     record.class.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  const handleMarkAttendance = (newAttendanceData: any[]) => {
+    setAttendanceData(newAttendanceData);
+    toast({
+      title: "Attendance Marked",
+      description: `Attendance recorded for ${newAttendanceData.length} students`,
+    });
+  };
+
+  const handleFingerprintSetup = () => {
+    setShowFingerprintSetup(true);
+    toast({
+      title: "Fingerprint Setup",
+      description: "Fingerprint device setup initiated. Please follow device instructions.",
+    });
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -85,18 +105,25 @@ const AttendanceManagement: React.FC = () => {
   const attendanceRate = ((presentCount + lateCount) / totalStudents * 100).toFixed(1);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Attendance Management</h1>
           <p className="text-gray-600">Track and manage student attendance with fingerprint integration</p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline">
+          <Button 
+            variant="outline" 
+            onClick={handleFingerprintSetup}
+            className="hover-scale"
+          >
             <Fingerprint className="w-4 h-4 mr-2" />
             Fingerprint Setup
           </Button>
-          <Button className="bg-emerald-600 hover:bg-emerald-700">
+          <Button 
+            className="bg-emerald-600 hover:bg-emerald-700 hover-scale"
+            onClick={() => setShowMarkingModal(true)}
+          >
             <Clock className="w-4 h-4 mr-2" />
             Mark Attendance
           </Button>
@@ -105,31 +132,31 @@ const AttendanceManagement: React.FC = () => {
 
       {/* Attendance Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300 hover-scale">
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-blue-600">{totalStudents}</div>
             <div className="text-sm text-gray-600">Total Students</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300 hover-scale">
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-green-600">{presentCount}</div>
             <div className="text-sm text-gray-600">Present</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300 hover-scale">
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-red-600">{absentCount}</div>
             <div className="text-sm text-gray-600">Absent</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300 hover-scale">
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-amber-600">{lateCount}</div>
             <div className="text-sm text-gray-600">Late</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300 hover-scale">
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-emerald-600">{attendanceRate}%</div>
             <div className="text-sm text-gray-600">Attendance Rate</div>
@@ -139,7 +166,7 @@ const AttendanceManagement: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Calendar */}
-        <Card>
+        <Card className="hover:shadow-md transition-shadow duration-200">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <CalendarIcon className="w-5 h-5" />
@@ -158,7 +185,7 @@ const AttendanceManagement: React.FC = () => {
 
         {/* Attendance List */}
         <div className="lg:col-span-2 space-y-4">
-          <Card>
+          <Card className="hover:shadow-md transition-shadow duration-200">
             <CardContent className="p-4">
               <div className="flex items-center space-x-4">
                 <div className="flex-1 relative">
@@ -171,7 +198,7 @@ const AttendanceManagement: React.FC = () => {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <Button variant="outline">
+                <Button variant="outline" className="hover-scale">
                   <Filter className="w-4 h-4 mr-2" />
                   Filter
                 </Button>
@@ -179,7 +206,7 @@ const AttendanceManagement: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Card>
+          <Card className="hover:shadow-md transition-shadow duration-200">
             <CardHeader>
               <CardTitle>
                 Today's Attendance - {selectedDate.toLocaleDateString()}
@@ -188,7 +215,7 @@ const AttendanceManagement: React.FC = () => {
             <CardContent>
               <div className="space-y-3">
                 {filteredAttendance.map((record) => (
-                  <div key={record.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:shadow-sm transition-shadow">
+                  <div key={record.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:shadow-sm transition-all duration-200 hover-scale">
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-emerald-100 rounded-full flex items-center justify-center">
                         <span className="text-emerald-700 font-semibold text-sm">
@@ -232,7 +259,7 @@ const AttendanceManagement: React.FC = () => {
       </div>
 
       {/* Fingerprint Integration Info */}
-      <Card className="bg-blue-50 border-blue-200">
+      <Card className="bg-blue-50 border-blue-200 hover:shadow-md transition-shadow duration-200">
         <CardContent className="p-4">
           <div className="flex items-center space-x-3">
             <Fingerprint className="w-8 h-8 text-blue-600" />
@@ -246,6 +273,14 @@ const AttendanceManagement: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Modals */}
+      {showMarkingModal && (
+        <AttendanceMarkingModal
+          onClose={() => setShowMarkingModal(false)}
+          onMarkAttendance={handleMarkAttendance}
+        />
+      )}
     </div>
   );
 };

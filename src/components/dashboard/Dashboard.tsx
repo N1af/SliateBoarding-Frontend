@@ -13,8 +13,15 @@ import {
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
+import { useToast } from '@/hooks/use-toast';
 
-const Dashboard: React.FC = () => {
+interface DashboardProps {
+  onSectionChange?: (section: string) => void;
+}
+
+const Dashboard: React.FC<DashboardProps> = ({ onSectionChange }) => {
+  const { toast } = useToast();
+  
   const stats = [
     {
       title: 'Total Students',
@@ -57,8 +64,42 @@ const Dashboard: React.FC = () => {
     { id: 4, activity: 'Monthly exam results published', time: '1 day ago', type: 'exam' },
   ];
 
+  const handleQuickAction = (action: string) => {
+    switch (action) {
+      case 'add-student':
+        onSectionChange?.('students');
+        toast({
+          title: "Navigate to Students",
+          description: "Redirecting to Student Management to add new student",
+        });
+        break;
+      case 'add-staff':
+        onSectionChange?.('staff');
+        toast({
+          title: "Navigate to Staff",
+          description: "Redirecting to Staff Management to add new staff",
+        });
+        break;
+      case 'generate-report':
+        toast({
+          title: "Generate Report",
+          description: "Report generation feature coming soon!",
+        });
+        break;
+      case 'mark-attendance':
+        onSectionChange?.('attendance');
+        toast({
+          title: "Navigate to Attendance",
+          description: "Redirecting to Attendance Management",
+        });
+        break;
+      default:
+        break;
+    }
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div>
         <h1 className="text-2xl font-bold text-gray-900 mb-2">Dashboard</h1>
         <p className="text-gray-600">Welcome back! Here's what's happening at your Madrasah today.</p>
@@ -67,14 +108,16 @@ const Dashboard: React.FC = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
-          <StatsCard key={index} {...stat} />
+          <div key={index} className="hover-scale">
+            <StatsCard {...stat} />
+          </div>
         ))}
       </div>
 
       {/* Charts and Recent Activities */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Fee Collection Progress */}
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <TrendingUp className="w-5 h-5 text-emerald-600" />
@@ -103,7 +146,7 @@ const Dashboard: React.FC = () => {
         </Card>
 
         {/* Recent Activities */}
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300">
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
               <Calendar className="w-5 h-5 text-blue-600" />
@@ -113,7 +156,7 @@ const Dashboard: React.FC = () => {
           <CardContent>
             <div className="space-y-4">
               {recentActivities.map((activity) => (
-                <div key={activity.id} className="flex items-start space-x-3">
+                <div key={activity.id} className="flex items-start space-x-3 hover:bg-gray-50 p-2 rounded-lg transition-colors">
                   <div className="w-2 h-2 bg-emerald-500 rounded-full mt-2"></div>
                   <div className="flex-1">
                     <p className="text-sm font-medium text-gray-900">{activity.activity}</p>
@@ -127,25 +170,37 @@ const Dashboard: React.FC = () => {
       </div>
 
       {/* Quick Actions */}
-      <Card>
+      <Card className="hover:shadow-lg transition-all duration-300">
         <CardHeader>
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <button className="p-4 text-center rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+            <button 
+              onClick={() => handleQuickAction('add-student')}
+              className="p-4 text-center rounded-lg border border-gray-200 hover:bg-gray-50 transition-all duration-200 hover-scale"
+            >
               <GraduationCap className="w-8 h-8 text-blue-600 mx-auto mb-2" />
               <p className="text-sm font-medium">Add Student</p>
             </button>
-            <button className="p-4 text-center rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+            <button 
+              onClick={() => handleQuickAction('add-staff')}
+              className="p-4 text-center rounded-lg border border-gray-200 hover:bg-gray-50 transition-all duration-200 hover-scale"
+            >
               <Users className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
               <p className="text-sm font-medium">Add Staff</p>
             </button>
-            <button className="p-4 text-center rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+            <button 
+              onClick={() => handleQuickAction('generate-report')}
+              className="p-4 text-center rounded-lg border border-gray-200 hover:bg-gray-50 transition-all duration-200 hover-scale"
+            >
               <FileText className="w-8 h-8 text-amber-600 mx-auto mb-2" />
               <p className="text-sm font-medium">Generate Report</p>
             </button>
-            <button className="p-4 text-center rounded-lg border border-gray-200 hover:bg-gray-50 transition-colors">
+            <button 
+              onClick={() => handleQuickAction('mark-attendance')}
+              className="p-4 text-center rounded-lg border border-gray-200 hover:bg-gray-50 transition-all duration-200 hover-scale"
+            >
               <Clock className="w-8 h-8 text-purple-600 mx-auto mb-2" />
               <p className="text-sm font-medium">Mark Attendance</p>
             </button>

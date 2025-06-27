@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -16,11 +15,15 @@ import {
   Calendar,
   IndianRupee
 } from 'lucide-react';
+import AddStaffForm from './AddStaffForm';
+import { useToast } from '@/hooks/use-toast';
 
 const StaffManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [showAddForm, setShowAddForm] = useState(false);
+  const { toast } = useToast();
 
-  const staff = [
+  const [staff, setStaff] = useState([
     {
       id: 'SF001',
       name: 'Dr. Mohd. Rashid',
@@ -69,7 +72,7 @@ const StaffManagement: React.FC = () => {
       status: 'active',
       experience: '5 years'
     }
-  ];
+  ]);
 
   const filteredStaff = staff.filter(member =>
     member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -77,21 +80,61 @@ const StaffManagement: React.FC = () => {
     member.designation.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const handleAddStaff = (newStaff: any) => {
+    setStaff([...staff, newStaff]);
+    toast({
+      title: "Staff Added",
+      description: `${newStaff.name} has been successfully added to the system.`,
+    });
+  };
+
+  const handleExport = () => {
+    const csvContent = [
+      ['ID', 'Name', 'Designation', 'Department', 'Phone', 'Email', 'Salary', 'Status'],
+      ...filteredStaff.map(member => [
+        member.id,
+        member.name,
+        member.designation,
+        member.department,
+        member.phone,
+        member.email,
+        member.salary,
+        member.status
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'staff_export.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Export Complete",
+      description: "Staff data has been exported to CSV file.",
+    });
+  };
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Staff Management</h1>
           <p className="text-gray-600">Manage staff records, salaries, and information</p>
         </div>
-        <Button className="bg-emerald-600 hover:bg-emerald-700">
+        <Button 
+          className="bg-emerald-600 hover:bg-emerald-700 hover-scale"
+          onClick={() => setShowAddForm(true)}
+        >
           <Plus className="w-4 h-4 mr-2" />
           Add New Staff
         </Button>
       </div>
 
       {/* Search and Filter Bar */}
-      <Card>
+      <Card className="hover:shadow-md transition-shadow duration-200">
         <CardContent className="p-4">
           <div className="flex items-center space-x-4">
             <div className="flex-1 relative">
@@ -104,11 +147,11 @@ const StaffManagement: React.FC = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button variant="outline">
+            <Button variant="outline" className="hover-scale">
               <Filter className="w-4 h-4 mr-2" />
               Filter
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" onClick={handleExport} className="hover-scale">
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
@@ -118,25 +161,25 @@ const StaffManagement: React.FC = () => {
 
       {/* Staff Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300 hover-scale">
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">89</div>
+            <div className="text-2xl font-bold text-blue-600">{staff.length}</div>
             <div className="text-sm text-gray-600">Total Staff</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300 hover-scale">
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">85</div>
+            <div className="text-2xl font-bold text-green-600">{staff.filter(s => s.status === 'active').length}</div>
             <div className="text-sm text-gray-600">Active Staff</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300 hover-scale">
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-amber-600">₹42.5L</div>
+            <div className="text-2xl font-bold text-amber-600">₹{Math.round(staff.reduce((acc, s) => acc + s.salary, 0) / 100000 * 10) / 10}L</div>
             <div className="text-sm text-gray-600">Monthly Payroll</div>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="hover:shadow-lg transition-all duration-300 hover-scale">
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-emerald-600">12</div>
             <div className="text-sm text-gray-600">Departments</div>
@@ -145,14 +188,14 @@ const StaffManagement: React.FC = () => {
       </div>
 
       {/* Staff List */}
-      <Card>
+      <Card className="hover:shadow-md transition-shadow duration-200">
         <CardHeader>
-          <CardTitle>Staff Records</CardTitle>
+          <CardTitle>Staff Records ({filteredStaff.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
             {filteredStaff.map((member) => (
-              <div key={member.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
+              <div key={member.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200 hover-scale">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
@@ -190,10 +233,10 @@ const StaffManagement: React.FC = () => {
                     </div>
                     
                     <div className="flex space-x-2">
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" className="hover-scale">
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button variant="ghost" size="sm" className="hover-scale">
                         <Edit className="w-4 h-4" />
                       </Button>
                     </div>
@@ -204,6 +247,14 @@ const StaffManagement: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Add Staff Modal */}
+      {showAddForm && (
+        <AddStaffForm
+          onClose={() => setShowAddForm(false)}
+          onSave={handleAddStaff}
+        />
+      )}
     </div>
   );
 };

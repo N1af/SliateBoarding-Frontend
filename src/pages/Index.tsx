@@ -14,7 +14,7 @@ const Index = () => {
   const renderContent = () => {
     switch (activeSection) {
       case 'dashboard':
-        return <Dashboard />;
+        return <Dashboard onSectionChange={setActiveSection} />;
       case 'students':
         return <StudentManagement />;
       case 'staff':
@@ -25,27 +25,27 @@ const Index = () => {
         return <AttendanceManagement />;
       case 'exams':
         return (
-          <div className="text-center py-12">
+          <div className="text-center py-12 animate-fade-in">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Exam Management</h2>
             <p className="text-gray-600">Exam management module coming soon...</p>
           </div>
         );
       case 'reports':
         return (
-          <div className="text-center py-12">
+          <div className="text-center py-12 animate-fade-in">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">Reports & Analytics</h2>
             <p className="text-gray-600">Comprehensive reporting module coming soon...</p>
           </div>
         );
       case 'settings':
         return (
-          <div className="text-center py-12">
+          <div className="text-center py-12 animate-fade-in">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">System Settings</h2>
             <p className="text-gray-600">Settings and configuration panel coming soon...</p>
           </div>
         );
       default:
-        return <Dashboard />;
+        return <Dashboard onSectionChange={setActiveSection} />;
     }
   };
 
