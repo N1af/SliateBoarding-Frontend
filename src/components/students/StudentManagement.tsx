@@ -15,11 +15,19 @@ import {
   Mail,
   MapPin
 } from 'lucide-react';
+import AddStudentForm from './AddStudentForm';
+import StudentDetailsModal from './StudentDetailsModal';
+import { useToast } from '@/hooks/use-toast';
 
 const StudentManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [showDetails, setShowDetails] = useState(false);
+  const [filterClass, setFilterClass] = useState('');
+  const { toast } = useToast();
 
-  const students = [
+  const [students, setStudents] = useState([
     {
       id: 'ST001',
       name: 'Ahmed Hassan',
@@ -59,13 +67,76 @@ const StudentManagement: React.FC = () => {
       admissionDate: '2023-03-10',
       attendance: 95
     }
-  ];
+  ]);
 
-  const filteredStudents = students.filter(student =>
-    student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.class.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredStudents = students.filter(student => {
+    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         student.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         student.class.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesFilter = filterClass === '' || student.class.includes(filterClass);
+    return matchesSearch && matchesFilter;
+  });
+
+  const handleAddStudent = (newStudent: any) => {
+    setStudents([...students, newStudent]);
+    toast({
+      title: "Student Added",
+      description: `${newStudent.name} has been successfully added to the system.`,
+    });
+  };
+
+  const handleViewStudent = (student: any) => {
+    setSelectedStudent(student);
+    setShowDetails(true);
+  };
+
+  const handleEditStudent = (student: any) => {
+    toast({
+      title: "Edit Student",
+      description: `Edit functionality for ${student.name} - Coming soon!`,
+    });
+  };
+
+  const handleFilter = () => {
+    const classes = [...new Set(students.map(s => s.class))];
+    const nextClass = classes[Math.floor(Math.random() * classes.length)];
+    setFilterClass(filterClass === nextClass ? '' : nextClass);
+    toast({
+      title: "Filter Applied",
+      description: filterClass === nextClass ? "Filter cleared" : `Filtered by ${nextClass}`,
+    });
+  };
+
+  const handleExport = () => {
+    const csvContent = [
+      ['ID', 'Name', 'Class', 'Age', 'Guardian', 'Phone', 'Email', 'Address', 'Fee Status', 'Attendance'],
+      ...filteredStudents.map(student => [
+        student.id,
+        student.name,
+        student.class,
+        student.age,
+        student.guardianName,
+        student.phone,
+        student.email,
+        student.address,
+        student.feeStatus,
+        `${student.attendance}%`
+      ])
+    ].map(row => row.join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'students_export.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+    
+    toast({
+      title: "Export Complete",
+      description: "Student data has been exported to CSV file.",
+    });
+  };
 
   return (
     <div className="space-y-6">
@@ -74,7 +145,10 @@ const StudentManagement: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">Student Management</h1>
           <p className="text-gray-600">Manage student records, admissions, and information</p>
         </div>
-        <Button className="bg-emerald-600 hover:bg-emerald-700">
+        <Button 
+          className="bg-emerald-600 hover:bg-emerald-700"
+          onClick={() => setShowAddForm(true)}
+        >
           <Plus className="w-4 h-4 mr-2" />
           Add New Student
         </Button>
@@ -94,11 +168,11 @@ const StudentManagement: React.FC = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button variant="outline">
+            <Button variant="outline" onClick={handleFilter}>
               <Filter className="w-4 h-4 mr-2" />
-              Filter
+              Filter {filterClass && `(${filterClass})`}
             </Button>
-            <Button variant="outline">
+            <Button variant="outline" onClick={handleExport}>
               <Download className="w-4 h-4 mr-2" />
               Export
             </Button>
@@ -110,25 +184,27 @@ const StudentManagement: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">1,247</div>
+            <div className="text-2xl font-bold text-blue-600">{students.length}</div>
             <div className="text-sm text-gray-600">Total Students</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">1,156</div>
-            <div className="text-sm text-gray-600">Active Students</div>
+            <div className="text-2xl font-bold text-green-600">{students.filter(s => s.feeStatus === 'paid').length}</div>
+            <div className="text-sm text-gray-600">Fees Paid</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-amber-600">91</div>
+            <div className="text-2xl font-bold text-amber-600">{students.filter(s => s.feeStatus === 'pending').length}</div>
             <div className="text-sm text-gray-600">Pending Fees</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-emerald-600">92.5%</div>
+            <div className="text-2xl font-bold text-emerald-600">
+              {Math.round(students.reduce((acc, s) => acc + s.attendance, 0) / students.length)}%
+            </div>
             <div className="text-sm text-gray-600">Avg Attendance</div>
           </CardContent>
         </Card>
@@ -137,7 +213,7 @@ const StudentManagement: React.FC = () => {
       {/* Students List */}
       <Card>
         <CardHeader>
-          <CardTitle>Student Records</CardTitle>
+          <CardTitle>Student Records ({filteredStudents.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -180,10 +256,18 @@ const StudentManagement: React.FC = () => {
                     </div>
                     
                     <div className="flex space-x-2">
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleViewStudent(student)}
+                      >
                         <Eye className="w-4 h-4" />
                       </Button>
-                      <Button variant="ghost" size="sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleEditStudent(student)}
+                      >
                         <Edit className="w-4 h-4" />
                       </Button>
                     </div>
@@ -194,6 +278,24 @@ const StudentManagement: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Modals */}
+      {showAddForm && (
+        <AddStudentForm
+          onClose={() => setShowAddForm(false)}
+          onSave={handleAddStudent}
+        />
+      )}
+
+      {showDetails && selectedStudent && (
+        <StudentDetailsModal
+          student={selectedStudent}
+          onClose={() => {
+            setShowDetails(false);
+            setSelectedStudent(null);
+          }}
+        />
+      )}
     </div>
   );
 };
