@@ -25,23 +25,38 @@ const Index = () => {
         return <AttendanceManagement />;
       case 'exams':
         return (
-          <div className="text-center py-12 animate-fade-in">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Exam Management</h2>
-            <p className="text-gray-600">Exam management module coming soon...</p>
+          <div className="text-center py-16 animate-fade-in">
+            <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 islamic-pattern">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4 text-shadow">Exam Management</h2>
+              <p className="text-gray-600">Comprehensive exam management system coming soon...</p>
+              <div className="mt-6 w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full mx-auto flex items-center justify-center">
+                <span className="text-white font-bold text-xl">📝</span>
+              </div>
+            </div>
           </div>
         );
       case 'reports':
         return (
-          <div className="text-center py-12 animate-fade-in">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Reports & Analytics</h2>
-            <p className="text-gray-600">Comprehensive reporting module coming soon...</p>
+          <div className="text-center py-16 animate-fade-in">
+            <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 islamic-pattern">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4 text-shadow">Reports & Analytics</h2>
+              <p className="text-gray-600">Advanced reporting and analytics dashboard coming soon...</p>
+              <div className="mt-6 w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full mx-auto flex items-center justify-center">
+                <span className="text-white font-bold text-xl">📊</span>
+              </div>
+            </div>
           </div>
         );
       case 'settings':
         return (
-          <div className="text-center py-12 animate-fade-in">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">System Settings</h2>
-            <p className="text-gray-600">Settings and configuration panel coming soon...</p>
+          <div className="text-center py-16 animate-fade-in">
+            <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 islamic-pattern">
+              <h2 className="text-2xl font-bold text-gray-900 mb-4 text-shadow">System Settings</h2>
+              <p className="text-gray-600">Comprehensive settings and configuration panel coming soon...</p>
+              <div className="mt-6 w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full mx-auto flex items-center justify-center">
+                <span className="text-white font-bold text-xl">⚙️</span>
+              </div>
+            </div>
           </div>
         );
       default:
@@ -50,11 +65,13 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-teal-50/20">
       <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} />
       <Header />
-      <main className="ml-64 pt-16 p-6">
-        {renderContent()}
+      <main className="ml-64 pt-16 p-6 animate-fade-in">
+        <div className="max-w-7xl mx-auto">
+          {renderContent()}
+        </div>
       </main>
     </div>
   );
