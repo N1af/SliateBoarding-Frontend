@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,10 +12,12 @@ import {
   Eye,
   Phone,
   Mail,
-  MapPin
+  MapPin,
+  GraduationCap
 } from 'lucide-react';
 import AddStudentForm from './AddStudentForm';
 import StudentDetailsModal from './StudentDetailsModal';
+import CourseCompletionModal from './CourseCompletionModal';
 import { useToast } from '@/hooks/use-toast';
 
 const StudentManagement: React.FC = () => {
@@ -24,6 +25,7 @@ const StudentManagement: React.FC = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [showDetails, setShowDetails] = useState(false);
+  const [showCourseCompletion, setShowCourseCompletion] = useState(false);
   const [filterClass, setFilterClass] = useState('');
   const { toast } = useToast();
 
@@ -68,6 +70,21 @@ const StudentManagement: React.FC = () => {
       attendance: 95
     }
   ]);
+
+  const handleCompleteStudentCourse = (student: any) => {
+    setSelectedStudent(student);
+    setShowCourseCompletion(true);
+  };
+
+  const handleCourseCompletion = (completionData: any) => {
+    // Remove student from current students and add to past students
+    setStudents(students.filter(s => s.id !== completionData.originalId));
+    
+    toast({
+      title: "Student Graduated",
+      description: `${completionData.name} has been successfully moved to past students with grade ${completionData.finalGrade}.`,
+    });
+  };
 
   const filteredStudents = students.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -270,6 +287,14 @@ const StudentManagement: React.FC = () => {
                       >
                         <Edit className="w-4 h-4" />
                       </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleCompleteStudentCourse(student)}
+                        className="text-emerald-600 hover:text-emerald-700"
+                      >
+                        <GraduationCap className="w-4 h-4" />
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -294,6 +319,17 @@ const StudentManagement: React.FC = () => {
             setShowDetails(false);
             setSelectedStudent(null);
           }}
+        />
+      )}
+
+      {showCourseCompletion && selectedStudent && (
+        <CourseCompletionModal
+          student={selectedStudent}
+          onClose={() => {
+            setShowCourseCompletion(false);
+            setSelectedStudent(null);
+          }}
+          onComplete={handleCourseCompletion}
         />
       )}
     </div>
