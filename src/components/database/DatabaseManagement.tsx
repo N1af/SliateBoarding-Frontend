@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,29 +13,77 @@ import {
   DollarSign,
   AlertTriangle,
   Eye,
-  Filter
+  Filter,
+  Trash2,
+  Edit,
+  Shield
 } from 'lucide-react';
+import DatabasePermissionModal from './DatabasePermissionModal';
 import { useToast } from '@/hooks/use-toast';
 
 const DatabaseManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [hasAccess, setHasAccess] = useState(false);
+  const [showPermissionModal, setShowPermissionModal] = useState(false);
   const { toast } = useToast();
 
-  const [allStudents] = useState([
-    { id: 'ST001', name: 'Ahmed Hassan', class: 'Class 8A', fees: 5000, paid: 5000, fingerprint: 'FP001' },
-    { id: 'ST002', name: 'Fatima Khan', class: 'Class 7B', fees: 4500, paid: 3000, fingerprint: 'FP002' },
-    { id: 'ST003', name: 'Omar Abdullah', class: 'Class 9A', fees: 5500, paid: 5500, fingerprint: 'FP003' }
+  const [allStudents, setAllStudents] = useState([
+    { id: 'ST001', name: 'Ahmed Hassan', class: 'Class 8A', fees: 25000, paid: 25000, fingerprint: 'FP001', phone: '+94 77 123 4567' },
+    { id: 'ST002', name: 'Fatima Khan', class: 'Class 7B', fees: 22500, paid: 15000, fingerprint: 'FP002', phone: '+94 71 234 5678' },
+    { id: 'ST003', name: 'Omar Abdullah', class: 'Class 9A', fees: 27500, paid: 27500, fingerprint: 'FP003', phone: '+94 76 345 6789' }
   ]);
 
-  const [allStaff] = useState([
-    { id: 'SF001', name: 'Ustaz Ahmad', position: 'Head Teacher', salary: 25000, department: 'Islamic Studies' },
-    { id: 'SF002', name: 'Sister Khadijah', position: 'Arabic Teacher', salary: 20000, department: 'Languages' }
+  const [allStaff, setAllStaff] = useState([
+    { id: 'SF001', name: 'Ustaz Ahmad', position: 'Head Teacher', salary: 125000, department: 'Islamic Studies', phone: '+94 77 987 6543' },
+    { id: 'SF002', name: 'Sister Khadijah', position: 'Arabic Teacher', salary: 100000, department: 'Languages', phone: '+94 71 876 5432' }
   ]);
 
-  const [allFees] = useState([
-    { id: 'FE001', studentName: 'Ahmed Hassan', amount: 5000, status: 'paid', date: '2024-01-15' },
-    { id: 'FE002', studentName: 'Fatima Khan', amount: 1500, status: 'pending', date: '2024-01-20' }
+  const [allFees, setAllFees] = useState([
+    { id: 'FE001', studentName: 'Ahmed Hassan', amount: 25000, status: 'paid', date: '2024-01-15' },
+    { id: 'FE002', studentName: 'Fatima Khan', amount: 7500, status: 'pending', date: '2024-01-20' }
   ]);
+
+  const handleRequestAccess = () => {
+    setShowPermissionModal(true);
+  };
+
+  const handleGrantAccess = () => {
+    setHasAccess(true);
+  };
+
+  const handleDeleteRecord = (type: string, id: string) => {
+    if (type === 'students') {
+      setAllStudents(prev => prev.filter(s => s.id !== id));
+    } else if (type === 'staff') {
+      setAllStaff(prev => prev.filter(s => s.id !== id));
+    } else if (type === 'fees') {
+      setAllFees(prev => prev.filter(f => f.id !== id));
+    }
+    
+    toast({
+      title: "Record Deleted",
+      description: `${type} record has been permanently deleted.`,
+      variant: "destructive"
+    });
+  };
+
+  const handleClearAllRecords = (type: string) => {
+    if (window.confirm(`Are you sure you want to delete ALL ${type} records? This action cannot be undone.`)) {
+      if (type === 'students') {
+        setAllStudents([]);
+      } else if (type === 'staff') {
+        setAllStaff([]);
+      } else if (type === 'fees') {
+        setAllFees([]);
+      }
+      
+      toast({
+        title: "All Records Cleared",
+        description: `All ${type} records have been permanently deleted.`,
+        variant: "destructive"
+      });
+    }
+  };
 
   const handleExportData = (type: string) => {
     let csvContent = '';
@@ -44,19 +91,19 @@ const DatabaseManagement: React.FC = () => {
     switch (type) {
       case 'students':
         csvContent = [
-          ['ID', 'Name', 'Class', 'Total Fees', 'Paid Amount', 'Fingerprint ID'],
-          ...allStudents.map(s => [s.id, s.name, s.class, s.fees, s.paid, s.fingerprint])
+          ['ID', 'Name', 'Class', 'Total Fees (LKR)', 'Paid Amount (LKR)', 'Phone', 'Fingerprint ID'],
+          ...allStudents.map(s => [s.id, s.name, s.class, s.fees, s.paid, s.phone, s.fingerprint])
         ].map(row => row.join(',')).join('\n');
         break;
       case 'staff':
         csvContent = [
-          ['ID', 'Name', 'Position', 'Department', 'Salary'],
-          ...allStaff.map(s => [s.id, s.name, s.position, s.department, s.salary])
+          ['ID', 'Name', 'Position', 'Department', 'Salary (LKR)', 'Phone'],
+          ...allStaff.map(s => [s.id, s.name, s.position, s.department, s.salary, s.phone])
         ].map(row => row.join(',')).join('\n');
         break;
       case 'fees':
         csvContent = [
-          ['ID', 'Student Name', 'Amount', 'Status', 'Date'],
+          ['ID', 'Student Name', 'Amount (LKR)', 'Status', 'Date'],
           ...allFees.map(f => [f.id, f.studentName, f.amount, f.status, f.date])
         ].map(row => row.join(',')).join('\n');
         break;
@@ -75,6 +122,29 @@ const DatabaseManagement: React.FC = () => {
       description: `${type} data has been exported successfully.`,
     });
   };
+
+  if (!hasAccess) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-12">
+          <Shield className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-700 mb-2">Database Access Required</h2>
+          <p className="text-gray-600 mb-6">Administrator permissions needed to access database management.</p>
+          <Button onClick={handleRequestAccess} className="bg-red-600 hover:bg-red-700">
+            <Shield className="w-4 h-4 mr-2" />
+            Request Access
+          </Button>
+        </div>
+        
+        {showPermissionModal && (
+          <DatabasePermissionModal
+            onClose={() => setShowPermissionModal(false)}
+            onGrantAccess={handleGrantAccess}
+          />
+        )}
+      </div>
+    );
+  }
 
   const filteredStudents = allStudents.filter(student => 
     student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -141,7 +211,7 @@ const DatabaseManagement: React.FC = () => {
           <CardContent className="p-4 text-center">
             <DollarSign className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
             <div className="text-2xl font-bold text-emerald-600">
-              ₹{allStudents.reduce((sum, s) => sum + s.paid, 0).toLocaleString()}
+              LKR {allStudents.reduce((sum, s) => sum + s.paid, 0).toLocaleString()}
             </div>
             <div className="text-sm text-gray-600">Total Collected</div>
           </CardContent>
@@ -169,10 +239,20 @@ const DatabaseManagement: React.FC = () => {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Students Records ({filteredStudents.length})</CardTitle>
-                <Button onClick={() => handleExportData('students')} className="bg-emerald-600 hover:bg-emerald-700">
-                  <Download className="w-4 h-4 mr-2" />
-                  Export Students
-                </Button>
+                <div className="flex space-x-2">
+                  <Button 
+                    onClick={() => handleClearAllRecords('students')} 
+                    variant="destructive"
+                    size="sm"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Clear All
+                  </Button>
+                  <Button onClick={() => handleExportData('students')} className="bg-emerald-600 hover:bg-emerald-700">
+                    <Download className="w-4 h-4 mr-2" />
+                    Export Students
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -187,15 +267,29 @@ const DatabaseManagement: React.FC = () => {
                         <div>
                           <h3 className="text-lg font-semibold">{student.name}</h3>
                           <p className="text-sm text-gray-600">{student.id} • {student.class}</p>
+                          <p className="text-xs text-gray-500">Phone: {student.phone}</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-sm font-medium">Fees: ₹{student.paid}/₹{student.fees}</div>
-                        <div className="text-xs text-gray-500">Fingerprint: {student.fingerprint}</div>
-                        <Button size="sm" variant="outline" className="mt-2">
-                          <Eye className="w-4 h-4 mr-1" />
-                          View Details
-                        </Button>
+                      <div className="flex items-center space-x-4">
+                        <div className="text-right">
+                          <div className="text-sm font-medium">Fees: LKR {student.paid.toLocaleString()}/LKR {student.fees.toLocaleString()}</div>
+                          <div className="text-xs text-gray-500">Fingerprint: {student.fingerprint}</div>
+                        </div>
+                        <div className="flex space-x-1">
+                          <Button size="sm" variant="outline">
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => handleDeleteRecord('students', student.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -210,10 +304,20 @@ const DatabaseManagement: React.FC = () => {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Staff Records ({filteredStaff.length})</CardTitle>
-                <Button onClick={() => handleExportData('staff')} className="bg-emerald-600 hover:bg-emerald-700">
-                  <Download className="w-4 h-4 mr-2" />
-                  Export Staff
-                </Button>
+                <div className="flex space-x-2">
+                  <Button 
+                    onClick={() => handleClearAllRecords('staff')} 
+                    variant="destructive"
+                    size="sm"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Clear All
+                  </Button>
+                  <Button onClick={() => handleExportData('staff')} className="bg-emerald-600 hover:bg-emerald-700">
+                    <Download className="w-4 h-4 mr-2" />
+                    Export Staff
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -228,14 +332,28 @@ const DatabaseManagement: React.FC = () => {
                         <div>
                           <h3 className="text-lg font-semibold">{staff.name}</h3>
                           <p className="text-sm text-gray-600">{staff.position} • {staff.department}</p>
+                          <p className="text-xs text-gray-500">Phone: {staff.phone}</p>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <div className="text-sm font-medium">Salary: ₹{staff.salary.toLocaleString()}</div>
-                        <Button size="sm" variant="outline" className="mt-2">
-                          <Eye className="w-4 h-4 mr-1" />
-                          View Profile
-                        </Button>
+                      <div className="flex items-center space-x-4">
+                        <div className="text-right">
+                          <div className="text-sm font-medium">Salary: LKR {staff.salary.toLocaleString()}</div>
+                        </div>
+                        <div className="flex space-x-1">
+                          <Button size="sm" variant="outline">
+                            <Eye className="w-4 h-4" />
+                          </Button>
+                          <Button size="sm" variant="outline">
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => handleDeleteRecord('staff', staff.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -250,10 +368,20 @@ const DatabaseManagement: React.FC = () => {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Fee Records ({allFees.length})</CardTitle>
-                <Button onClick={() => handleExportData('fees')} className="bg-emerald-600 hover:bg-emerald-700">
-                  <Download className="w-4 h-4 mr-2" />
-                  Export Fees
-                </Button>
+                <div className="flex space-x-2">
+                  <Button 
+                    onClick={() => handleClearAllRecords('fees')} 
+                    variant="destructive"
+                    size="sm"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Clear All
+                  </Button>
+                  <Button onClick={() => handleExportData('fees')} className="bg-emerald-600 hover:bg-emerald-700">
+                    <Download className="w-4 h-4 mr-2" />
+                    Export Fees
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent>
@@ -265,11 +393,25 @@ const DatabaseManagement: React.FC = () => {
                         <h3 className="text-lg font-semibold">{fee.studentName}</h3>
                         <p className="text-sm text-gray-600">{fee.id} • {fee.date}</p>
                       </div>
-                      <div className="text-right">
-                        <div className="text-sm font-medium">₹{fee.amount.toLocaleString()}</div>
-                        <Badge variant={fee.status === 'paid' ? 'default' : 'destructive'} className="mt-1">
-                          {fee.status === 'paid' ? 'Paid' : 'Pending'}
-                        </Badge>
+                      <div className="flex items-center space-x-4">
+                        <div className="text-right">
+                          <div className="text-sm font-medium">LKR {fee.amount.toLocaleString()}</div>
+                          <Badge variant={fee.status === 'paid' ? 'default' : 'destructive'} className="mt-1">
+                            {fee.status === 'paid' ? 'Paid' : 'Pending'}
+                          </Badge>
+                        </div>
+                        <div className="flex space-x-1">
+                          <Button size="sm" variant="outline">
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            variant="destructive"
+                            onClick={() => handleDeleteRecord('fees', fee.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </div>

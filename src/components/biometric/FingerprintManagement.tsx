@@ -12,17 +12,20 @@ import {
   CheckCircle,
   Users,
   Plus,
-  Eye
+  Eye,
+  Edit,
+  Trash2
 } from 'lucide-react';
+import FingerprintScanner from './FingerprintScanner';
 import { useToast } from '@/hooks/use-toast';
 
 const FingerprintManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [scanningMode, setScanningMode] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState<string>('');
+  const [showBulkEnrollment, setShowBulkEnrollment] = useState(false);
+  const [showScanner, setShowScanner] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const [students] = useState([
+  const [students, setStudents] = useState([
     { id: 'ST001', name: 'Ahmed Hassan', class: 'Class 8A', fingerprint: 'FP001', enrolled: true },
     { id: 'ST002', name: 'Fatima Khan', class: 'Class 7B', fingerprint: 'FP002', enrolled: true },
     { id: 'ST003', name: 'Omar Abdullah', class: 'Class 9A', fingerprint: 'FP003', enrolled: true },
@@ -35,39 +38,75 @@ const FingerprintManagement: React.FC = () => {
       fingerprint: 'FP001', 
       students: ['Ahmed Hassan', 'Ali Ahmed'], 
       severity: 'high',
-      message: 'Same fingerprint detected for multiple students'
+      message: 'Same fingerprint detected for multiple students - SUSPICIOUS ACTIVITY'
     }
   ]);
 
   const handleEnrollFingerprint = (studentId: string) => {
-    setSelectedStudent(studentId);
-    setScanningMode(true);
-    
-    // Simulate fingerprint scanning
-    setTimeout(() => {
-      const success = Math.random() > 0.1;
-      setScanningMode(false);
+    setShowScanner(studentId);
+  };
+
+  const handleScanComplete = (scanResult: any) => {
+    if (scanResult.status === 'success') {
+      setStudents(prev => prev.map(student => 
+        student.id === scanResult.studentId 
+          ? { ...student, fingerprint: scanResult.fingerprintId, enrolled: true }
+          : student
+      ));
       
-      if (success) {
-        toast({
-          title: "Fingerprint Enrolled",
-          description: "Student fingerprint has been successfully enrolled.",
-        });
-      } else {
-        toast({
-          title: "Enrollment Failed",
-          description: "Failed to capture fingerprint. Please try again.",
-          variant: "destructive"
-        });
-      }
-    }, 3000);
+      toast({
+        title: "Fingerprint Enrolled",
+        description: `${scanResult.studentName} fingerprint enrolled successfully.`,
+      });
+    }
+    setShowScanner(null);
   };
 
   const handleBulkEnrollment = () => {
-    toast({
-      title: "Bulk Enrollment Started",
-      description: "Starting bulk fingerprint enrollment for all students without biometric data.",
-    });
+    setShowBulkEnrollment(true);
+    const unenrolledStudents = students.filter(s => !s.enrolled);
+    
+    // Simulate bulk enrollment process
+    let count = 0;
+    const interval = setInterval(() => {
+      if (count < unenrolledStudents.length) {
+        const student = unenrolledStudents[count];
+        setStudents(prev => prev.map(s => 
+          s.id === student.id 
+            ? { ...s, fingerprint: `FP_BULK_${s.id}`, enrolled: true }
+            : s
+        ));
+        count++;
+        
+        toast({
+          title: `Bulk Enrollment Progress`,
+          description: `${count}/${unenrolledStudents.length} students enrolled.`,
+        });
+      } else {
+        clearInterval(interval);
+        setShowBulkEnrollment(false);
+        toast({
+          title: "Bulk Enrollment Complete",
+          description: `All ${unenrolledStudents.length} students have been enrolled.`,
+        });
+      }
+    }, 1000);
+  };
+
+  const handleDeleteFingerprint = (studentId: string) => {
+    if (window.confirm('Are you sure you want to delete this fingerprint? This action cannot be undone.')) {
+      setStudents(prev => prev.map(student =>
+        student.id === studentId
+          ? { ...student, fingerprint: null, enrolled: false }
+          : student
+      ));
+      
+      toast({
+        title: "Fingerprint Deleted",
+        description: "Student fingerprint has been removed from the system.",
+        variant: "destructive"
+      });
+    }
   };
 
   const filteredStudents = students.filter(student => 
@@ -78,6 +117,21 @@ const FingerprintManagement: React.FC = () => {
   const unenrolledCount = students.filter(s => !s.enrolled).length;
   const duplicateCount = duplicateAlerts.length;
 
+  if (showScanner) {
+    const student = students.find(s => s.id === showScanner);
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <FingerprintScanner
+          studentId={showScanner}
+          studentName={student?.name || ''}
+          onScanComplete={handleScanComplete}
+          onCancel={() => setShowScanner(null)}
+          isActive={true}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -85,9 +139,13 @@ const FingerprintManagement: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">Fingerprint Management</h1>
           <p className="text-gray-600">Manage student biometric data and authentication</p>
         </div>
-        <Button onClick={handleBulkEnrollment} className="bg-emerald-600 hover:bg-emerald-700">
+        <Button 
+          onClick={handleBulkEnrollment} 
+          className="bg-emerald-600 hover:bg-emerald-700"
+          disabled={showBulkEnrollment || unenrolledCount === 0}
+        >
           <Plus className="w-4 h-4 mr-2" />
-          Bulk Enrollment
+          {showBulkEnrollment ? 'Enrolling...' : `Bulk Enrollment (${unenrolledCount})`}
         </Button>
       </div>
 
@@ -96,8 +154,8 @@ const FingerprintManagement: React.FC = () => {
         <Alert className="border-red-200 bg-red-50">
           <AlertTriangle className="h-4 w-4 text-red-600" />
           <AlertDescription className="text-red-800">
-            <strong>Security Alert:</strong> {duplicateCount} duplicate fingerprint(s) detected. 
-            Please review and resolve immediately.
+            <strong>SECURITY ALERT:</strong> {duplicateCount} duplicate fingerprint(s) detected. 
+            This indicates SUSPICIOUS ACTIVITY - Please investigate immediately and verify student identities.
           </AlertDescription>
         </Alert>
       )}
@@ -147,7 +205,7 @@ const FingerprintManagement: React.FC = () => {
           <CardContent className="p-4 text-center">
             <AlertTriangle className="w-8 h-8 text-red-600 mx-auto mb-2" />
             <div className="text-2xl font-bold text-red-600">{duplicateCount}</div>
-            <div className="text-sm text-gray-600">Duplicates</div>
+            <div className="text-sm text-gray-600">Suspicious</div>
           </CardContent>
         </Card>
       </div>
@@ -158,21 +216,21 @@ const FingerprintManagement: React.FC = () => {
           <CardHeader className="bg-red-50">
             <CardTitle className="text-red-800 flex items-center space-x-2">
               <AlertTriangle className="w-5 h-5" />
-              <span>Suspicious Fingerprint Activity</span>
+              <span>SUSPICIOUS FINGERPRINT ACTIVITY - IMMEDIATE ATTENTION REQUIRED</span>
             </CardTitle>
           </CardHeader>
           <CardContent className="p-4">
             {duplicateAlerts.map((alert, index) => (
-              <div key={index} className="bg-white border border-red-200 rounded-lg p-4">
+              <div key={index} className="bg-white border-2 border-red-300 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div>
                     <h4 className="font-semibold text-red-800">Duplicate Fingerprint: {alert.fingerprint}</h4>
                     <p className="text-sm text-red-600">
                       Found in: {alert.students.join(', ')}
                     </p>
-                    <p className="text-xs text-red-500 mt-1">{alert.message}</p>
+                    <p className="text-xs text-red-500 mt-1 font-medium">{alert.message}</p>
                   </div>
-                  <Badge variant="destructive">High Risk</Badge>
+                  <Badge variant="destructive" className="animate-pulse">SUSPICIOUS</Badge>
                 </div>
               </div>
             ))}
@@ -218,28 +276,31 @@ const FingerprintManagement: React.FC = () => {
                         <Button 
                           size="sm"
                           onClick={() => handleEnrollFingerprint(student.id)}
-                          disabled={scanningMode && selectedStudent === student.id}
                           className="bg-emerald-600 hover:bg-emerald-700"
                         >
                           <Fingerprint className="w-4 h-4 mr-2" />
-                          {scanningMode && selectedStudent === student.id ? 'Scanning...' : 'Enroll'}
+                          Enroll
                         </Button>
                       )}
                       <Button variant="ghost" size="sm">
                         <Eye className="w-4 h-4" />
                       </Button>
+                      <Button variant="ghost" size="sm">
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      {student.enrolled && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleDeleteFingerprint(student.id)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
-                
-                {scanningMode && selectedStudent === student.id && (
-                  <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="flex items-center space-x-2">
-                      <Fingerprint className="w-5 h-5 text-blue-600 animate-pulse" />
-                      <span className="text-blue-800 font-medium">Please place finger on scanner...</span>
-                    </div>
-                  </div>
-                )}
               </div>
             ))}
           </div>
