@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -185,7 +184,7 @@ const PastStudentsManagement: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card className="islamic-pattern">
           <CardContent className="p-4 text-center">
-            <Graduate className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
+            <GraduationCap className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
             <div className="text-2xl font-bold text-emerald-600">{pastStudents.length}</div>
             <div className="text-sm text-gray-600">Total Alumni</div>
           </CardContent>
@@ -223,7 +222,7 @@ const PastStudentsManagement: React.FC = () => {
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
-            <Graduate className="w-5 h-5" />
+            <GraduationCap className="w-5 h-5" />
             <span>Alumni Records ({filteredStudents.length})</span>
           </CardTitle>
         </CardHeader>
