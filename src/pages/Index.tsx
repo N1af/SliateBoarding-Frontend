@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import Sidebar from '@/components/layout/Sidebar';
 import Header from '@/components/layout/Header';
@@ -10,6 +11,8 @@ import ReportsManagement from '@/components/reports/ReportsManagement';
 import SettingsManagement from '@/components/settings/SettingsManagement';
 import PastStudentsManagement from '@/components/students/PastStudentsManagement';
 import DatabaseAuthModal from '@/components/database/DatabaseAuthModal';
+import DatabaseManagement from '@/components/database/DatabaseManagement';
+import FingerprintManagement from '@/components/biometric/FingerprintManagement';
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -20,9 +23,13 @@ const Index = () => {
     if (!isDatabaseAuthenticated) {
       setShowDatabaseAuth(true);
     } else {
-      // Database is already authenticated, show database management
       setActiveSection('database');
     }
+  };
+
+  const handleDatabaseAuthenticated = () => {
+    setIsDatabaseAuthenticated(true);
+    setActiveSection('database');
   };
 
   const renderContent = () => {
@@ -44,17 +51,18 @@ const Index = () => {
       case 'past-students':
         return <PastStudentsManagement />;
       case 'database':
-        return (
+        return isDatabaseAuthenticated ? (
+          <DatabaseManagement />
+        ) : (
           <div className="text-center py-16 animate-fade-in">
             <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 islamic-pattern">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4 text-shadow">Database Management</h2>
-              <p className="text-gray-600">Database access granted. Full system database management available.</p>
-              <div className="mt-6 w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full mx-auto flex items-center justify-center">
-                <span className="text-white font-bold text-xl">🗄️</span>
-              </div>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4 text-shadow">Access Denied</h2>
+              <p className="text-gray-600">Please authenticate to access database management.</p>
             </div>
           </div>
         );
+      case 'fingerprint':
+        return <FingerprintManagement />;
       case 'exams':
         return (
           <div className="text-center py-16 animate-fade-in">
@@ -86,7 +94,7 @@ const Index = () => {
       {showDatabaseAuth && (
         <DatabaseAuthModal
           onClose={() => setShowDatabaseAuth(false)}
-          onAuthenticated={() => setIsDatabaseAuthenticated(true)}
+          onAuthenticated={handleDatabaseAuthenticated}
         />
       )}
     </div>
