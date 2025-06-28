@@ -23,10 +23,11 @@ const FingerprintScanner: React.FC<FingerprintScannerProps> = ({
 }) => {
   const [scanStatus, setScanStatus] = useState<'idle' | 'scanning' | 'success' | 'failed' | 'suspicious'>('idle');
   const [scanProgress, setScanProgress] = useState(0);
+  const [isScanning, setIsScanning] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
-    if (isActive && scanStatus === 'scanning') {
+    if (isScanning && scanStatus === 'scanning') {
       const interval = setInterval(() => {
         setScanProgress(prev => {
           if (prev >= 100) {
@@ -41,10 +42,10 @@ const FingerprintScanner: React.FC<FingerprintScannerProps> = ({
 
       return () => clearInterval(interval);
     }
-  }, [isActive, scanStatus]);
+  }, [isScanning, scanStatus]);
 
   const simulateFingerprintScan = () => {
-    // Simulate different scan results
+    // Simulate different scan results - only when actually scanning
     const random = Math.random();
     
     if (random > 0.8) {
@@ -83,11 +84,13 @@ const FingerprintScanner: React.FC<FingerprintScannerProps> = ({
         variant: "destructive"
       });
     }
+    setIsScanning(false);
   };
 
   const startScan = () => {
     setScanStatus('scanning');
     setScanProgress(0);
+    setIsScanning(true);
     toast({
       title: "Fingerprint Scanning",
       description: "Please place your finger on the sensor and hold still.",
@@ -97,6 +100,7 @@ const FingerprintScanner: React.FC<FingerprintScannerProps> = ({
   const resetScan = () => {
     setScanStatus('idle');
     setScanProgress(0);
+    setIsScanning(false);
   };
 
   return (

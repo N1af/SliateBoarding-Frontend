@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +10,7 @@ import {
   Plus, 
   Filter, 
   Download,
-  IndianRupee,
+  DollarSign,
   Calendar,
   TrendingUp,
   AlertCircle,
@@ -90,7 +91,7 @@ const FeeManagement: React.FC = () => {
     
     toast({
       title: "Payment Recorded",
-      description: `Payment of ₹${payment.amount} recorded for ${payment.studentName}`,
+      description: `Payment of RS.${payment.amount} recorded for ${payment.studentName}`,
     });
   };
 
@@ -173,7 +174,7 @@ const FeeManagement: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Collections</p>
-                <p className="text-2xl font-bold text-green-600">₹{totalCollected.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-green-600">RS.{totalCollected.toLocaleString()}</p>
               </div>
               <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
                 <TrendingUp className="w-5 h-5 text-green-600" />
@@ -187,7 +188,7 @@ const FeeManagement: React.FC = () => {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Pending Amount</p>
-                <p className="text-2xl font-bold text-amber-600">₹{totalPending.toLocaleString()}</p>
+                <p className="text-2xl font-bold text-amber-600">RS.{totalPending.toLocaleString()}</p>
               </div>
               <div className="w-10 h-10 bg-amber-100 rounded-lg flex items-center justify-center">
                 <AlertCircle className="w-5 h-5 text-amber-600" />
@@ -235,22 +236,22 @@ const FeeManagement: React.FC = () => {
             <div>
               <div className="flex justify-between text-sm mb-2">
                 <span>January 2024 Collection</span>
-                <span>₹{totalCollected.toLocaleString()} / ₹{(totalCollected + totalPending).toLocaleString()} ({collectionRate}%)</span>
+                <span>RS.{totalCollected.toLocaleString()} / RS.{(totalCollected + totalPending).toLocaleString()} ({collectionRate}%)</span>
               </div>
               <Progress value={parseFloat(collectionRate)} className="h-3" />
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
               <div className="text-center p-3 bg-green-50 rounded-lg">
                 <p className="text-green-600 font-semibold">Collected</p>
-                <p className="text-lg font-bold text-green-700">₹{totalCollected.toLocaleString()}</p>
+                <p className="text-lg font-bold text-green-700">RS.{totalCollected.toLocaleString()}</p>
               </div>
               <div className="text-center p-3 bg-amber-50 rounded-lg">
                 <p className="text-amber-600 font-semibold">Pending</p>
-                <p className="text-lg font-bold text-amber-700">₹{totalPending.toLocaleString()}</p>
+                <p className="text-lg font-bold text-amber-700">RS.{totalPending.toLocaleString()}</p>
               </div>
               <div className="text-center p-3 bg-blue-50 rounded-lg">
                 <p className="text-blue-600 font-semibold">Target</p>
-                <p className="text-lg font-bold text-blue-700">₹{(totalCollected + totalPending).toLocaleString()}</p>
+                <p className="text-lg font-bold text-blue-700">RS.{(totalCollected + totalPending).toLocaleString()}</p>
               </div>
             </div>
           </div>
@@ -295,7 +296,7 @@ const FeeManagement: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
                     <div className="w-12 h-12 bg-emerald-100 rounded-full flex items-center justify-center">
-                      <IndianRupee className="w-6 h-6 text-emerald-700" />
+                      <DollarSign className="w-6 h-6 text-emerald-700" />
                     </div>
                     <div>
                       <h3 className="text-lg font-semibold text-gray-900">{record.studentName}</h3>
@@ -307,17 +308,17 @@ const FeeManagement: React.FC = () => {
                   <div className="flex items-center space-x-6">
                     <div className="text-right">
                       <p className="text-sm text-gray-600">Total Fee</p>
-                      <p className="text-lg font-semibold">₹{record.totalFee.toLocaleString()}</p>
+                      <p className="text-lg font-semibold">RS.{record.totalFee.toLocaleString()}</p>
                     </div>
                     
                     <div className="text-right">
                       <p className="text-sm text-gray-600">Paid</p>
-                      <p className="text-lg font-semibold text-green-600">₹{record.paidAmount.toLocaleString()}</p>
+                      <p className="text-lg font-semibold text-green-600">RS.{record.paidAmount.toLocaleString()}</p>
                     </div>
                     
                     <div className="text-right">
                       <p className="text-sm text-gray-600">Pending</p>
-                      <p className="text-lg font-semibold text-red-600">₹{record.pendingAmount.toLocaleString()}</p>
+                      <p className="text-lg font-semibold text-red-600">RS.{record.pendingAmount.toLocaleString()}</p>
                     </div>
                     
                     <div className="text-right">

@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -63,15 +64,19 @@ const AttendanceMarkingModal: React.FC<AttendanceMarkingModalProps> = ({ onClose
         variant: "destructive"
       });
     } else if (scanResult.status === 'success') {
-      // Verify if the scanned fingerprint matches the registered one
-      const isMatching = student?.registeredFingerprint === scanResult.fingerprintId || Math.random() > 0.2;
+      // Only verify based on student name matching, not fingerprint ID matching
+      const isStudentNameMatch = student?.name === scanResult.studentName;
       
-      if (isMatching) {
+      if (isStudentNameMatch) {
         setVerificationStatus(prev => ({ ...prev, [studentId]: 'verified' }));
         setAttendanceData(prev => ({
           ...prev,
           [studentId]: { status: 'present', method: 'fingerprint', verified: true, suspicious: false }
         }));
+        toast({
+          title: "Attendance Verified",
+          description: `${scanResult.studentName}: Successfully verified and marked present.`,
+        });
       } else {
         setVerificationStatus(prev => ({ ...prev, [studentId]: 'suspicious' }));
         setAttendanceData(prev => ({
@@ -81,12 +86,12 @@ const AttendanceMarkingModal: React.FC<AttendanceMarkingModalProps> = ({ onClose
             method: 'fingerprint', 
             verified: false, 
             suspicious: true,
-            suspiciousReason: 'Fingerprint ID mismatch'
+            suspiciousReason: 'Student name mismatch - Wrong student attempting attendance'
           }
         }));
         toast({
           title: "Identity Mismatch",
-          description: `${scanResult.studentName}: Scanned fingerprint doesn't match student record.`,
+          description: `Wrong student detected. Expected: ${student?.name}, Got: ${scanResult.studentName}`,
           variant: "destructive"
         });
       }
