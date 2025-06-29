@@ -29,11 +29,11 @@ const SettingsManagement: React.FC = () => {
 
   const [systemSettings, setSystemSettings] = useState({
     instituteName: 'Al-Madrasah Islamic School',
-    address: '123 Education Street, Islamic City',
-    phone: '+91 98765 43210',
-    email: 'info@madrasah.com',
-    currency: 'INR',
-    timezone: 'Asia/Kolkata',
+    address: '123 Education Street, Colombo, Sri Lanka',
+    phone: '+94 11 234 5678',
+    email: 'info@madrasah.lk',
+    currency: 'LKR',
+    timezone: 'Asia/Colombo',
     academicYear: '2024-2025',
     autoBackup: true,
     emailNotifications: true,
@@ -143,11 +143,12 @@ const SettingsManagement: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
+                  <Label htmlFor="phone">Phone Number (+94)</Label>
                   <Input
                     id="phone"
                     value={systemSettings.phone}
                     onChange={(e) => setSystemSettings({...systemSettings, phone: e.target.value})}
+                    placeholder="+94 11 234 5678"
                   />
                 </div>
                 <div className="space-y-2">
@@ -159,7 +160,7 @@ const SettingsManagement: React.FC = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="currency">Currency</Label>
+                  <Label htmlFor="currency">Currency (LKR)</Label>
                   <Input
                     id="currency"
                     value={systemSettings.currency}
@@ -177,7 +178,7 @@ const SettingsManagement: React.FC = () => {
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="address">Address</Label>
+                <Label htmlFor="address">Address (Sri Lanka)</Label>
                 <Input
                   id="address"
                   value={systemSettings.address}

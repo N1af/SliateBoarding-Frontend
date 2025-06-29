@@ -13,12 +13,17 @@ import PastStudentsManagement from '@/components/students/PastStudentsManagement
 import DatabaseAuthModal from '@/components/database/DatabaseAuthModal';
 import DatabaseManagement from '@/components/database/DatabaseManagement';
 import FingerprintManagement from '@/components/biometric/FingerprintManagement';
+import ExamManagement from '@/components/exams/ExamManagement';
+import ResultsDashboard from '@/components/dashboard/ResultsDashboard';
+import LoginModal from '@/components/auth/LoginModal';
 import NotificationProvider from '@/components/notifications/NotificationProvider';
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [showDatabaseAuth, setShowDatabaseAuth] = useState(false);
   const [isDatabaseAuthenticated, setIsDatabaseAuthenticated] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [showLogin, setShowLogin] = useState(true);
 
   const handleDatabaseAccess = () => {
     if (!isDatabaseAuthenticated) {
@@ -31,6 +36,11 @@ const Index = () => {
   const handleDatabaseAuthenticated = () => {
     setIsDatabaseAuthenticated(true);
     setActiveSection('database');
+  };
+
+  const handleLogin = () => {
+    setIsLoggedIn(true);
+    setShowLogin(false);
   };
 
   const renderContent = () => {
@@ -65,21 +75,26 @@ const Index = () => {
       case 'fingerprint':
         return <FingerprintManagement />;
       case 'exams':
-        return (
-          <div className="text-center py-16 animate-fade-in">
-            <div className="max-w-md mx-auto bg-white rounded-lg shadow-lg p-8 islamic-pattern">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4 text-shadow">Exam Management</h2>
-              <p className="text-gray-600">Comprehensive exam management system coming soon...</p>
-              <div className="mt-6 w-16 h-16 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full mx-auto flex items-center justify-center">
-                <span className="text-white font-bold text-xl">📝</span>
-              </div>
-            </div>
-          </div>
-        );
+        return <ExamManagement />;
+      case 'results':
+        return <ResultsDashboard />;
       default:
         return <Dashboard onSectionChange={setActiveSection} onDatabaseAccess={handleDatabaseAccess} />;
     }
   };
+
+  if (!isLoggedIn) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-teal-50/20">
+        {showLogin && (
+          <LoginModal
+            onClose={() => setShowLogin(false)}
+            onLogin={handleLogin}
+          />
+        )}
+      </div>
+    );
+  }
 
   return (
     <NotificationProvider>
