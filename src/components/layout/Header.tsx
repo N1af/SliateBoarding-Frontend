@@ -12,17 +12,16 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ onLogout }) => {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
-  const [notifications] = useState([
-    { id: 1, message: "New student Ahmed Hassan enrolled", type: "student", time: "2 mins ago" },
-    { id: 2, message: "Fee payment received from Fatima Khan", type: "fee", time: "5 mins ago" },
-    { id: 3, message: "Attendance marked for Class 8A", type: "attendance", time: "10 mins ago" },
-    { id: 4, message: "Fingerprint registered for Omar Abdullah", type: "fingerprint", time: "15 mins ago" }
-  ]);
+  const [notificationCount, setNotificationCount] = useState(4);
 
   const handleLogout = () => {
     if (onLogout) {
       onLogout();
     }
+  };
+
+  const handleClearNotifications = () => {
+    setNotificationCount(0);
   };
 
   return (
@@ -42,17 +41,17 @@ const Header: React.FC<HeaderProps> = ({ onLogout }) => {
               className="relative"
             >
               <Bell className="w-5 h-5" />
-              {notifications.length > 0 && (
+              {notificationCount > 0 && (
                 <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs bg-red-500">
-                  {notifications.length}
+                  {notificationCount}
                 </Badge>
               )}
             </Button>
             
             {showNotifications && (
               <NotificationPanel
-                notifications={notifications}
                 onClose={() => setShowNotifications(false)}
+                onClearCount={handleClearNotifications}
               />
             )}
           </div>

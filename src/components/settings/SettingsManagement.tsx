@@ -51,6 +51,15 @@ const SettingsManagement: React.FC = () => {
     sessionTimeout: 30
   });
 
+  const [notificationSettings, setNotificationSettings] = useState({
+    emailNotifications: true,
+    smsNotifications: false,
+    pushNotifications: true,
+    attendanceAlerts: true,
+    feeReminders: true,
+    examReminders: true
+  });
+
   const handleSaveProfile = () => {
     toast({
       title: "Profile Updated",
@@ -83,6 +92,13 @@ const SettingsManagement: React.FC = () => {
       currentPassword: '',
       newPassword: '',
       confirmPassword: ''
+    });
+  };
+
+  const handleSaveNotifications = () => {
+    toast({
+      title: "Notifications Updated",
+      description: "Notification settings have been saved successfully.",
     });
   };
 
@@ -277,6 +293,88 @@ const SettingsManagement: React.FC = () => {
     </div>
   );
 
+  const renderNotificationSettings = () => (
+    <div className="space-y-4">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <Label htmlFor="emailNotifications">Email Notifications</Label>
+          <input
+            id="emailNotifications"
+            type="checkbox"
+            checked={notificationSettings.emailNotifications}
+            onChange={(e) => setNotificationSettings({...notificationSettings, emailNotifications: e.target.checked})}
+            className="w-4 h-4"
+          />
+        </div>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="smsNotifications">SMS Notifications</Label>
+          <input
+            id="smsNotifications"
+            type="checkbox"
+            checked={notificationSettings.smsNotifications}
+            onChange={(e) => setNotificationSettings({...notificationSettings, smsNotifications: e.target.checked})}
+            className="w-4 h-4"
+          />
+        </div>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="pushNotifications">Push Notifications</Label>
+          <input
+            id="pushNotifications"
+            type="checkbox"
+            checked={notificationSettings.pushNotifications}
+            onChange={(e) => setNotificationSettings({...notificationSettings, pushNotifications: e.target.checked})}
+            className="w-4 h-4"
+          />
+        </div>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="attendanceAlerts">Attendance Alerts</Label>
+          <input
+            id="attendanceAlerts"
+            type="checkbox"
+            checked={notificationSettings.attendanceAlerts}
+            onChange={(e) => setNotificationSettings({...notificationSettings, attendanceAlerts: e.target.checked})}
+            className="w-4 h-4"
+          />
+        </div>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="feeReminders">Fee Reminders</Label>
+          <input
+            id="feeReminders"
+            type="checkbox"
+            checked={notificationSettings.feeReminders}
+            onChange={(e) => setNotificationSettings({...notificationSettings, feeReminders: e.target.checked})}
+            className="w-4 h-4"
+          />
+        </div>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="examReminders">Exam Reminders</Label>
+          <input
+            id="examReminders"
+            type="checkbox"
+            checked={notificationSettings.examReminders}
+            onChange={(e) => setNotificationSettings({...notificationSettings, examReminders: e.target.checked})}
+            className="w-4 h-4"
+          />
+        </div>
+      </div>
+      <Button onClick={handleSaveNotifications} className="bg-emerald-600 hover:bg-emerald-700">
+        <Save className="w-4 h-4 mr-2" />
+        Save Notification Settings
+      </Button>
+    </div>
+  );
+
+  const renderDatabaseSettings = () => (
+    <div className="space-y-4">
+      <div className="text-center py-8">
+        <Database className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+        <h3 className="text-lg font-semibold mb-2">Database Management</h3>
+        <p className="text-gray-600 mb-4">Database settings require special authentication.</p>
+        <p className="text-sm text-gray-500">Contact system administrator for database access.</p>
+      </div>
+    </div>
+  );
+
   return (
     <div className="space-y-6">
       <div>
@@ -303,7 +401,7 @@ const SettingsManagement: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center space-x-2">
             {tabs.find(tab => tab.id === activeTab)?.icon && (
-              <tabs.find(tab => tab.id === activeTab)!.icon className="w-5 h-5" />
+              React.createElement(tabs.find(tab => tab.id === activeTab)!.icon, { className: "w-5 h-5" })
             )}
             <span>{tabs.find(tab => tab.id === activeTab)?.label}</span>
           </CardTitle>
@@ -312,18 +410,8 @@ const SettingsManagement: React.FC = () => {
           {activeTab === 'profile' && renderProfileSettings()}
           {activeTab === 'system' && renderSystemSettings()}
           {activeTab === 'security' && renderSecuritySettings()}
-          {activeTab === 'notifications' && (
-            <div className="text-center py-8">
-              <Bell className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">Notification settings will be available soon.</p>
-            </div>
-          )}
-          {activeTab === 'database' && (
-            <div className="text-center py-8">
-              <Database className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-600">Database settings require special authentication.</p>
-            </div>
-          )}
+          {activeTab === 'notifications' && renderNotificationSettings()}
+          {activeTab === 'database' && renderDatabaseSettings()}
         </CardContent>
       </Card>
     </div>
