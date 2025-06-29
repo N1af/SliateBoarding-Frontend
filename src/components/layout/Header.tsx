@@ -1,8 +1,7 @@
 
 import React from 'react';
-import { Bell, Search, User } from 'lucide-react';
+import { Bell, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,14 +14,7 @@ const Header: React.FC = () => {
     <header className="bg-white shadow-sm border-b border-gray-200 h-16 fixed top-0 right-0 left-64 z-10">
       <div className="flex items-center justify-between h-full px-6">
         <div className="flex items-center space-x-4">
-          <div className="relative w-96">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <Input
-              type="text"
-              placeholder="Search students, staff, or records..."
-              className="pl-10 bg-gray-50 border-gray-200 focus:bg-white"
-            />
-          </div>
+          <h2 className="text-xl font-semibold text-gray-800">Madrasa Management System</h2>
         </div>
         
         <div className="flex items-center space-x-4">

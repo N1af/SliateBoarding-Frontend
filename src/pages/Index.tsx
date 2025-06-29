@@ -13,6 +13,7 @@ import PastStudentsManagement from '@/components/students/PastStudentsManagement
 import DatabaseAuthModal from '@/components/database/DatabaseAuthModal';
 import DatabaseManagement from '@/components/database/DatabaseManagement';
 import FingerprintManagement from '@/components/biometric/FingerprintManagement';
+import NotificationProvider from '@/components/notifications/NotificationProvider';
 
 const Index = () => {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -81,23 +82,25 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-teal-50/20">
-      <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} />
-      <Header />
-      <main className="ml-64 pt-16 p-6 animate-fade-in">
-        <div className="max-w-7xl mx-auto">
-          {renderContent()}
-        </div>
-      </main>
+    <NotificationProvider>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-teal-50/20">
+        <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} />
+        <Header />
+        <main className="ml-64 pt-16 p-6 animate-fade-in">
+          <div className="max-w-7xl mx-auto">
+            {renderContent()}
+          </div>
+        </main>
 
-      {/* Database Authentication Modal */}
-      {showDatabaseAuth && (
-        <DatabaseAuthModal
-          onClose={() => setShowDatabaseAuth(false)}
-          onAuthenticated={handleDatabaseAuthenticated}
-        />
-      )}
-    </div>
+        {/* Database Authentication Modal */}
+        {showDatabaseAuth && (
+          <DatabaseAuthModal
+            onClose={() => setShowDatabaseAuth(false)}
+            onAuthenticated={handleDatabaseAuthenticated}
+          />
+        )}
+      </div>
+    </NotificationProvider>
   );
 };
 

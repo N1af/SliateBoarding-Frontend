@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Fingerprint, AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { notificationService } from '@/services/notificationService';
 
 interface FingerprintScannerProps {
   studentId: string;
@@ -32,7 +33,6 @@ const FingerprintScanner: React.FC<FingerprintScannerProps> = ({
         setScanProgress(prev => {
           if (prev >= 100) {
             clearInterval(interval);
-            // Simulate real fingerprint scanner result
             simulateFingerprintScan();
             return 100;
           }
@@ -45,11 +45,9 @@ const FingerprintScanner: React.FC<FingerprintScannerProps> = ({
   }, [isScanning, scanStatus]);
 
   const simulateFingerprintScan = () => {
-    // Simulate different scan results - only when actually scanning
     const random = Math.random();
     
     if (random > 0.8) {
-      // 20% chance of suspicious activity
       setScanStatus('suspicious');
       toast({
         title: "Suspicious Activity Detected",
@@ -63,12 +61,13 @@ const FingerprintScanner: React.FC<FingerprintScannerProps> = ({
         message: 'Fingerprint mismatch detected'
       });
     } else if (random > 0.1) {
-      // 70% success rate
       setScanStatus('success');
       toast({
         title: "Fingerprint Verified",
         description: `${studentName} successfully verified.`,
       });
+      // Send notification for fingerprint scan
+      notificationService.fingerprintScanned(studentName);
       onScanComplete({
         status: 'success',
         studentId,
@@ -76,7 +75,6 @@ const FingerprintScanner: React.FC<FingerprintScannerProps> = ({
         fingerprintId: `FP_${studentId}_${Date.now()}`
       });
     } else {
-      // 10% failure rate
       setScanStatus('failed');
       toast({
         title: "Scan Failed",
