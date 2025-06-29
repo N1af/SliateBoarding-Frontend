@@ -184,7 +184,7 @@ const ResultsDashboard: React.FC = () => {
                         <span className="text-sm font-medium">
                           {exam.marks}/{exam.total}
                         </span>
-                        <Badge size="sm" className={getGradeColor(exam.grade)}>
+                        <Badge className={getGradeColor(exam.grade)}>
                           {exam.grade}
                         </Badge>
                       </div>
