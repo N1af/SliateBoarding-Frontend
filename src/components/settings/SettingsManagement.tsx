@@ -1,408 +1,331 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { 
   Settings, 
-  Shield, 
-  Users, 
-  DollarSign, 
+  User, 
+  Building, 
+  Globe, 
+  Database,
+  Shield,
   Bell,
   Save,
-  Lock,
-  UserPlus,
-  Trash2
+  Edit,
+  Eye,
+  EyeOff
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 const SettingsManagement: React.FC = () => {
+  const [activeTab, setActiveTab] = useState('profile');
+  const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
-  const [userRoles, setUserRoles] = useState([
-    { id: 1, name: 'Admin', email: 'admin@madrasah.com', role: 'admin', permissions: ['all'] },
-    { id: 2, name: 'Finance Manager', email: 'finance@madrasah.com', role: 'finance', permissions: ['fees', 'reports'] },
-    { id: 3, name: 'Staff Coordinator', email: 'staff@madrasah.com', role: 'staff', permissions: ['attendance', 'students'] }
-  ]);
+
+  const [profileSettings, setProfileSettings] = useState({
+    madrasaName: 'Al-Noor Islamic Academy',
+    adminName: 'Administrator',
+    email: 'admin@madrasa.lk',
+    phone: '+94 77 123 4567',
+    address: 'Colombo, Sri Lanka',
+    website: 'www.madrasa.lk'
+  });
 
   const [systemSettings, setSystemSettings] = useState({
-    instituteName: 'Al-Madrasah Islamic School',
-    address: '123 Education Street, Colombo, Sri Lanka',
-    phone: '+94 11 234 5678',
-    email: 'info@madrasah.lk',
-    currency: 'LKR',
     timezone: 'Asia/Colombo',
-    academicYear: '2024-2025',
-    autoBackup: true,
-    emailNotifications: true,
-    smsNotifications: false,
-    attendanceThreshold: 75,
-    feeReminderDays: 7
+    language: 'English',
+    currency: 'LKR',
+    dateFormat: 'DD/MM/YYYY',
+    backupEnabled: true,
+    maintenanceMode: false
   });
 
-  const [newUser, setNewUser] = useState({
-    name: '',
-    email: '',
-    role: 'staff',
-    password: ''
+  const [securitySettings, setSecuritySettings] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: '',
+    twoFactorEnabled: false,
+    sessionTimeout: 30
   });
 
-  const handleSaveSettings = () => {
+  const handleSaveProfile = () => {
     toast({
-      title: "Settings Saved",
-      description: "System settings have been updated successfully.",
+      title: "Profile Updated",
+      description: "Profile settings have been saved successfully.",
     });
   };
 
-  const handleAddUser = () => {
-    if (newUser.name && newUser.email) {
-      const permissions = newUser.role === 'admin' ? ['all'] : 
-                         newUser.role === 'finance' ? ['fees', 'reports'] : 
-                         ['attendance', 'students'];
-      
-      setUserRoles([...userRoles, {
-        id: userRoles.length + 1,
-        name: newUser.name,
-        email: newUser.email,
-        role: newUser.role,
-        permissions
-      }]);
-      
-      setNewUser({ name: '', email: '', role: 'staff', password: '' });
-      
+  const handleSaveSystem = () => {
+    toast({
+      title: "System Updated",
+      description: "System settings have been saved successfully.",
+    });
+  };
+
+  const handleSaveSecurity = () => {
+    if (securitySettings.newPassword !== securitySettings.confirmPassword) {
       toast({
-        title: "User Added",
-        description: `${newUser.name} has been added with ${newUser.role} privileges.`,
+        title: "Password Error",
+        description: "New passwords do not match.",
+        variant: "destructive"
       });
+      return;
     }
-  };
-
-  const handleDeleteUser = (userId: number) => {
-    setUserRoles(userRoles.filter(user => user.id !== userId));
     toast({
-      title: "User Removed",
-      description: "User has been removed from the system.",
+      title: "Security Updated",
+      description: "Security settings have been saved successfully.",
+    });
+    setSecuritySettings({
+      ...securitySettings,
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: ''
     });
   };
 
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'admin': return 'bg-red-100 text-red-800';
-      case 'finance': return 'bg-green-100 text-green-800';
-      case 'staff': return 'bg-blue-100 text-blue-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+  const tabs = [
+    { id: 'profile', label: 'Profile Settings', icon: User },
+    { id: 'system', label: 'System Settings', icon: Settings },
+    { id: 'security', label: 'Security', icon: Shield },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'database', label: 'Database', icon: Database }
+  ];
+
+  const renderProfileSettings = () => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="madrasaName">Madrasa Name</Label>
+          <Input
+            id="madrasaName"
+            value={profileSettings.madrasaName}
+            onChange={(e) => setProfileSettings({...profileSettings, madrasaName: e.target.value})}
+          />
+        </div>
+        <div>
+          <Label htmlFor="adminName">Admin Name</Label>
+          <Input
+            id="adminName"
+            value={profileSettings.adminName}
+            onChange={(e) => setProfileSettings({...profileSettings, adminName: e.target.value})}
+          />
+        </div>
+        <div>
+          <Label htmlFor="email">Email</Label>
+          <Input
+            id="email"
+            type="email"
+            value={profileSettings.email}
+            onChange={(e) => setProfileSettings({...profileSettings, email: e.target.value})}
+          />
+        </div>
+        <div>
+          <Label htmlFor="phone">Phone Number</Label>
+          <Input
+            id="phone"
+            value={profileSettings.phone}
+            onChange={(e) => setProfileSettings({...profileSettings, phone: e.target.value})}
+            placeholder="+94 XX XXX XXXX"
+          />
+        </div>
+        <div>
+          <Label htmlFor="address">Address</Label>
+          <Input
+            id="address"
+            value={profileSettings.address}
+            onChange={(e) => setProfileSettings({...profileSettings, address: e.target.value})}
+          />
+        </div>
+        <div>
+          <Label htmlFor="website">Website</Label>
+          <Input
+            id="website"
+            value={profileSettings.website}
+            onChange={(e) => setProfileSettings({...profileSettings, website: e.target.value})}
+          />
+        </div>
+      </div>
+      <Button onClick={handleSaveProfile} className="bg-emerald-600 hover:bg-emerald-700">
+        <Save className="w-4 h-4 mr-2" />
+        Save Profile Settings
+      </Button>
+    </div>
+  );
+
+  const renderSystemSettings = () => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="timezone">Timezone</Label>
+          <select
+            id="timezone"
+            value={systemSettings.timezone}
+            onChange={(e) => setSystemSettings({...systemSettings, timezone: e.target.value})}
+            className="w-full p-2 border border-gray-300 rounded-md"
+          >
+            <option value="Asia/Colombo">Asia/Colombo (UTC+5:30)</option>
+            <option value="Asia/Dubai">Asia/Dubai (UTC+4:00)</option>
+            <option value="UTC">UTC (UTC+0:00)</option>
+          </select>
+        </div>
+        <div>
+          <Label htmlFor="language">Language</Label>
+          <select
+            id="language"
+            value={systemSettings.language}
+            onChange={(e) => setSystemSettings({...systemSettings, language: e.target.value})}
+            className="w-full p-2 border border-gray-300 rounded-md"
+          >
+            <option value="English">English</option>
+            <option value="Sinhala">Sinhala</option>
+            <option value="Tamil">Tamil</option>
+            <option value="Arabic">Arabic</option>
+          </select>
+        </div>
+        <div>
+          <Label htmlFor="currency">Currency</Label>
+          <select
+            id="currency"
+            value={systemSettings.currency}
+            onChange={(e) => setSystemSettings({...systemSettings, currency: e.target.value})}
+            className="w-full p-2 border border-gray-300 rounded-md"
+          >
+            <option value="LKR">Sri Lankan Rupee (LKR)</option>
+            <option value="USD">US Dollar (USD)</option>
+            <option value="EUR">Euro (EUR)</option>
+          </select>
+        </div>
+        <div>
+          <Label htmlFor="dateFormat">Date Format</Label>
+          <select
+            id="dateFormat"
+            value={systemSettings.dateFormat}
+            onChange={(e) => setSystemSettings({...systemSettings, dateFormat: e.target.value})}
+            className="w-full p-2 border border-gray-300 rounded-md"
+          >
+            <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+            <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+            <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+          </select>
+        </div>
+      </div>
+      <Button onClick={handleSaveSystem} className="bg-emerald-600 hover:bg-emerald-700">
+        <Save className="w-4 h-4 mr-2" />
+        Save System Settings
+      </Button>
+    </div>
+  );
+
+  const renderSecuritySettings = () => (
+    <div className="space-y-4">
+      <div className="grid grid-cols-1 gap-4 max-w-md">
+        <div>
+          <Label htmlFor="currentPassword">Current Password</Label>
+          <div className="relative">
+            <Input
+              id="currentPassword"
+              type={showPassword ? "text" : "password"}
+              value={securitySettings.currentPassword}
+              onChange={(e) => setSecuritySettings({...securitySettings, currentPassword: e.target.value})}
+            />
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="absolute right-0 top-0 h-full px-3"
+              onClick={() => setShowPassword(!showPassword)}
+            >
+              {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+            </Button>
+          </div>
+        </div>
+        <div>
+          <Label htmlFor="newPassword">New Password</Label>
+          <Input
+            id="newPassword"
+            type={showPassword ? "text" : "password"}
+            value={securitySettings.newPassword}
+            onChange={(e) => setSecuritySettings({...securitySettings, newPassword: e.target.value})}
+          />
+        </div>
+        <div>
+          <Label htmlFor="confirmPassword">Confirm New Password</Label>
+          <Input
+            id="confirmPassword"
+            type={showPassword ? "text" : "password"}
+            value={securitySettings.confirmPassword}
+            onChange={(e) => setSecuritySettings({...securitySettings, confirmPassword: e.target.value})}
+          />
+        </div>
+        <div>
+          <Label htmlFor="sessionTimeout">Session Timeout (minutes)</Label>
+          <Input
+            id="sessionTimeout"
+            type="number"
+            value={securitySettings.sessionTimeout}
+            onChange={(e) => setSecuritySettings({...securitySettings, sessionTimeout: parseInt(e.target.value)})}
+          />
+        </div>
+      </div>
+      <Button onClick={handleSaveSecurity} className="bg-emerald-600 hover:bg-emerald-700">
+        <Save className="w-4 h-4 mr-2" />
+        Update Security Settings
+      </Button>
+    </div>
+  );
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">System Settings</h1>
-          <p className="text-gray-600">Manage system configuration and user access</p>
-        </div>
-        <Button onClick={handleSaveSettings} className="bg-emerald-600 hover:bg-emerald-700">
-          <Save className="w-4 h-4 mr-2" />
-          Save All Settings
-        </Button>
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900">Admin Settings</h1>
+        <p className="text-gray-600">Manage system configuration and preferences</p>
       </div>
 
-      <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="general">General Settings</TabsTrigger>
-          <TabsTrigger value="users">User Management</TabsTrigger>
-          <TabsTrigger value="security">Security</TabsTrigger>
-        </TabsList>
+      <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
+        {tabs.map((tab) => (
+          <Button
+            key={tab.id}
+            variant={activeTab === tab.id ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setActiveTab(tab.id)}
+            className={activeTab === tab.id ? "bg-white shadow-sm" : ""}
+          >
+            <tab.icon className="w-4 h-4 mr-2" />
+            {tab.label}
+          </Button>
+        ))}
+      </div>
 
-        <TabsContent value="general" className="space-y-4">
-          <Card className="islamic-pattern">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Settings className="w-5 h-5" />
-                <span>Institution Settings</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="instituteName">Institution Name</Label>
-                  <Input
-                    id="instituteName"
-                    value={systemSettings.instituteName}
-                    onChange={(e) => setSystemSettings({...systemSettings, instituteName: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="academicYear">Academic Year</Label>
-                  <Input
-                    id="academicYear"
-                    value={systemSettings.academicYear}
-                    onChange={(e) => setSystemSettings({...systemSettings, academicYear: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number (+94)</Label>
-                  <Input
-                    id="phone"
-                    value={systemSettings.phone}
-                    onChange={(e) => setSystemSettings({...systemSettings, phone: e.target.value})}
-                    placeholder="+94 11 234 5678"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="email">Email Address</Label>
-                  <Input
-                    id="email"
-                    value={systemSettings.email}
-                    onChange={(e) => setSystemSettings({...systemSettings, email: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="currency">Currency (LKR)</Label>
-                  <Input
-                    id="currency"
-                    value={systemSettings.currency}
-                    onChange={(e) => setSystemSettings({...systemSettings, currency: e.target.value})}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="timezone">Timezone</Label>
-                  <Input
-                    id="timezone"
-                    value={systemSettings.timezone}
-                    onChange={(e) => setSystemSettings({...systemSettings, timezone: e.target.value})}
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="address">Address (Sri Lanka)</Label>
-                <Input
-                  id="address"
-                  value={systemSettings.address}
-                  onChange={(e) => setSystemSettings({...systemSettings, address: e.target.value})}
-                />
-              </div>
-
-              <div className="space-y-4 pt-4 border-t">
-                <h3 className="text-lg font-semibold">Notification Settings</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="autoBackup">Automatic Backup</Label>
-                      <p className="text-sm text-gray-500">Enable daily automatic backups</p>
-                    </div>
-                    <Switch
-                      id="autoBackup"
-                      checked={systemSettings.autoBackup}
-                      onCheckedChange={(checked) => setSystemSettings({...systemSettings, autoBackup: checked})}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="emailNotifications">Email Notifications</Label>
-                      <p className="text-sm text-gray-500">Send email notifications for important events</p>
-                    </div>
-                    <Switch
-                      id="emailNotifications"
-                      checked={systemSettings.emailNotifications}
-                      onCheckedChange={(checked) => setSystemSettings({...systemSettings, emailNotifications: checked})}
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="smsNotifications">SMS Notifications</Label>
-                      <p className="text-sm text-gray-500">Send SMS notifications for urgent matters</p>
-                    </div>
-                    <Switch
-                      id="smsNotifications"
-                      checked={systemSettings.smsNotifications}
-                      onCheckedChange={(checked) => setSystemSettings({...systemSettings, smsNotifications: checked})}
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="users" className="space-y-4">
-          <Card className="islamic-pattern">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Users className="w-5 h-5" />
-                <span>User Management</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-6">
-                {/* Add New User */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="text-lg font-semibold mb-4">Add New User</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="newUserName">Full Name</Label>
-                      <Input
-                        id="newUserName"
-                        value={newUser.name}
-                        onChange={(e) => setNewUser({...newUser, name: e.target.value})}
-                        placeholder="Enter full name"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="newUserEmail">Email Address</Label>
-                      <Input
-                        id="newUserEmail"
-                        type="email"
-                        value={newUser.email}
-                        onChange={(e) => setNewUser({...newUser, email: e.target.value})}
-                        placeholder="Enter email address"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="newUserRole">Role</Label>
-                      <select
-                        id="newUserRole"
-                        value={newUser.role}
-                        onChange={(e) => setNewUser({...newUser, role: e.target.value})}
-                        className="w-full p-2 border border-gray-300 rounded-md"
-                      >
-                        <option value="staff">Staff</option>
-                        <option value="finance">Finance</option>
-                        <option value="admin">Admin</option>
-                      </select>
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="newUserPassword">Temporary Password</Label>
-                      <Input
-                        id="newUserPassword"
-                        type="password"
-                        value={newUser.password}
-                        onChange={(e) => setNewUser({...newUser, password: e.target.value})}
-                        placeholder="Enter temporary password"
-                      />
-                    </div>
-                  </div>
-                  <Button onClick={handleAddUser} className="mt-4 bg-emerald-600 hover:bg-emerald-700">
-                    <UserPlus className="w-4 h-4 mr-2" />
-                    Add User
-                  </Button>
-                </div>
-
-                {/* Existing Users */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold">Current Users</h3>
-                  {userRoles.map((user) => (
-                    <div key={user.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-4">
-                          <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-teal-500 rounded-full flex items-center justify-center text-white font-bold">
-                            {user.name.split(' ').map(n => n[0]).join('')}
-                          </div>
-                          <div>
-                            <h4 className="font-semibold">{user.name}</h4>
-                            <p className="text-sm text-gray-600">{user.email}</p>
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center space-x-3">
-                          <Badge className={getRoleColor(user.role)}>
-                            {user.role.charAt(0).toUpperCase() + user.role.slice(1)}
-                          </Badge>
-                          <div className="text-xs text-gray-500">
-                            {user.permissions.join(', ')}
-                          </div>
-                          {user.role !== 'admin' && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteUser(user.id)}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="security" className="space-y-4">
-          <Card className="islamic-pattern">
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Shield className="w-5 h-5" />
-                <span>Security Settings</span>
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="space-y-4">
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Lock className="w-5 h-5 text-amber-600" />
-                    <h3 className="font-semibold text-amber-800">Database Security</h3>
-                  </div>
-                  <p className="text-amber-700 text-sm mb-4">
-                    Current database password: <strong>123</strong>
-                  </p>
-                  <Button variant="outline" className="border-amber-300 text-amber-700 hover:bg-amber-100">
-                    Change Database Password
-                  </Button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="attendanceThreshold">Minimum Attendance (%)</Label>
-                    <Input
-                      id="attendanceThreshold"
-                      type="number"
-                      value={systemSettings.attendanceThreshold}
-                      onChange={(e) => setSystemSettings({...systemSettings, attendanceThreshold: parseInt(e.target.value)})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="feeReminderDays">Fee Reminder Days</Label>
-                    <Input
-                      id="feeReminderDays"
-                      type="number"
-                      value={systemSettings.feeReminderDays}
-                      onChange={(e) => setSystemSettings({...systemSettings, feeReminderDays: parseInt(e.target.value)})}
-                    />
-                  </div>
-                </div>
-
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <Bell className="w-5 h-5 text-blue-600" />
-                    <h3 className="font-semibold text-blue-800">System Health</h3>
-                  </div>
-                  <div className="space-y-2 text-sm text-blue-700">
-                    <div className="flex justify-between">
-                      <span>Database Status:</span>
-                      <Badge className="bg-green-100 text-green-800">Connected</Badge>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Last Backup:</span>
-                      <span>{new Date().toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>System Version:</span>
-                      <span>v1.0.0</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center space-x-2">
+            {tabs.find(tab => tab.id === activeTab)?.icon && (
+              <tabs.find(tab => tab.id === activeTab)!.icon className="w-5 h-5" />
+            )}
+            <span>{tabs.find(tab => tab.id === activeTab)?.label}</span>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {activeTab === 'profile' && renderProfileSettings()}
+          {activeTab === 'system' && renderSystemSettings()}
+          {activeTab === 'security' && renderSecuritySettings()}
+          {activeTab === 'notifications' && (
+            <div className="text-center py-8">
+              <Bell className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">Notification settings will be available soon.</p>
+            </div>
+          )}
+          {activeTab === 'database' && (
+            <div className="text-center py-8">
+              <Database className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-600">Database settings require special authentication.</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 };

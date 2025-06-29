@@ -2,9 +2,8 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Eye, BookOpen, Users } from 'lucide-react';
+import { Plus, Edit, Eye, BookOpen, Users, Trash2, Download } from 'lucide-react';
 import AddExamModal from './AddExamModal';
 import ExamMarkingModal from './ExamMarkingModal';
 import { useToast } from '@/hooks/use-toast';
@@ -13,6 +12,7 @@ const ExamManagement: React.FC = () => {
   const [showAddExam, setShowAddExam] = useState(false);
   const [showMarking, setShowMarking] = useState(false);
   const [selectedExam, setSelectedExam] = useState<any>(null);
+  const [selectedClass, setSelectedClass] = useState<string>('all');
   const { toast } = useToast();
 
   const [exams, setExams] = useState([
@@ -37,6 +37,17 @@ const ExamManagement: React.FC = () => {
       totalMarks: 80,
       studentsCount: 22,
       markedCount: 22
+    },
+    {
+      id: 'EX003',
+      examName: 'Mathematics Test',
+      staffName: 'Ustad Omar',
+      moduleName: 'Basic Math',
+      className: 'Class 6A',
+      date: '2024-02-18',
+      totalMarks: 75,
+      studentsCount: 20,
+      markedCount: 12
     }
   ]);
 
@@ -71,6 +82,28 @@ const ExamManagement: React.FC = () => {
     });
   };
 
+  const handleDeleteExam = (examId: string) => {
+    setExams(exams.filter(exam => exam.id !== examId));
+    toast({
+      title: "Exam Deleted",
+      description: "Exam has been deleted successfully.",
+    });
+  };
+
+  const handleClearAllData = () => {
+    setExams([]);
+    toast({
+      title: "All Data Cleared",
+      description: "All exam data has been cleared successfully.",
+    });
+  };
+
+  const filteredExams = selectedClass === 'all' 
+    ? exams 
+    : exams.filter(exam => exam.className === selectedClass);
+
+  const classes = ['all', ...Array.from(new Set(exams.map(exam => exam.className)))];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -78,27 +111,57 @@ const ExamManagement: React.FC = () => {
           <h1 className="text-2xl font-bold text-gray-900">Exam Management</h1>
           <p className="text-gray-600">Manage exams, assignments, and student assessments</p>
         </div>
-        <Button 
-          className="bg-emerald-600 hover:bg-emerald-700"
-          onClick={() => setShowAddExam(true)}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add New Exam
-        </Button>
+        <div className="flex space-x-2">
+          <Button 
+            variant="outline"
+            onClick={handleClearAllData}
+            className="text-red-600 hover:bg-red-50"
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Clear All Data
+          </Button>
+          <Button 
+            className="bg-emerald-600 hover:bg-emerald-700"
+            onClick={() => setShowAddExam(true)}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add New Exam
+          </Button>
+        </div>
       </div>
+
+      {/* Class Filter */}
+      <Card>
+        <CardContent className="p-4">
+          <div className="flex items-center space-x-4">
+            <label className="text-sm font-medium">Filter by Class:</label>
+            <select
+              value={selectedClass}
+              onChange={(e) => setSelectedClass(e.target.value)}
+              className="p-2 border border-gray-300 rounded-md"
+            >
+              {classes.map(className => (
+                <option key={className} value={className}>
+                  {className === 'all' ? 'All Classes' : className}
+                </option>
+              ))}
+            </select>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Exam Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">{exams.length}</div>
+            <div className="text-2xl font-bold text-blue-600">{filteredExams.length}</div>
             <div className="text-sm text-gray-600">Total Exams</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-green-600">
-              {exams.filter(e => e.markedCount === e.studentsCount).length}
+              {filteredExams.filter(e => e.markedCount === e.studentsCount).length}
             </div>
             <div className="text-sm text-gray-600">Completed</div>
           </CardContent>
@@ -106,7 +169,7 @@ const ExamManagement: React.FC = () => {
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-amber-600">
-              {exams.filter(e => e.markedCount > 0 && e.markedCount < e.studentsCount).length}
+              {filteredExams.filter(e => e.markedCount > 0 && e.markedCount < e.studentsCount).length}
             </div>
             <div className="text-sm text-gray-600">In Progress</div>
           </CardContent>
@@ -114,7 +177,7 @@ const ExamManagement: React.FC = () => {
         <Card>
           <CardContent className="p-4 text-center">
             <div className="text-2xl font-bold text-red-600">
-              {exams.filter(e => e.markedCount === 0).length}
+              {filteredExams.filter(e => e.markedCount === 0).length}
             </div>
             <div className="text-sm text-gray-600">Pending</div>
           </CardContent>
@@ -124,11 +187,11 @@ const ExamManagement: React.FC = () => {
       {/* Exams List */}
       <Card>
         <CardHeader>
-          <CardTitle>Examination Records</CardTitle>
+          <CardTitle>Examination Records ({filteredExams.length})</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {exams.map((exam) => (
+            {filteredExams.map((exam) => (
               <div key={exam.id} className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-4">
@@ -187,6 +250,14 @@ const ExamManagement: React.FC = () => {
                         size="sm"
                       >
                         <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleDeleteExam(exam.id)}
+                        className="text-red-600 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>

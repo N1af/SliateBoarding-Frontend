@@ -22,7 +22,7 @@ const AttendanceMarkingModal: React.FC<AttendanceMarkingModalProps> = ({ onClose
 
   const [attendanceData, setAttendanceData] = useState(
     students.reduce((acc, student) => {
-      acc[student.id] = { status: 'present', method: 'manual', verified: false, suspicious: false };
+      acc[student.id] = { status: null, method: 'manual', verified: false, suspicious: false };
       return acc;
     }, {} as Record<string, any>)
   );
@@ -32,10 +32,13 @@ const AttendanceMarkingModal: React.FC<AttendanceMarkingModalProps> = ({ onClose
   const { toast } = useToast();
 
   const handleStatusChange = (studentId: string, status: string) => {
-    setAttendanceData(prev => ({
-      ...prev,
-      [studentId]: { ...prev[studentId], status }
-    }));
+    // Only allow manual status change if fingerprint hasn't been used
+    if (!attendanceData[studentId]?.verified && attendanceData[studentId]?.method !== 'fingerprint') {
+      setAttendanceData(prev => ({
+        ...prev,
+        [studentId]: { ...prev[studentId], status, method: 'manual' }
+      }));
+    }
   };
 
   const handleFingerprintScan = (studentId: string, student: any) => {
@@ -64,7 +67,7 @@ const AttendanceMarkingModal: React.FC<AttendanceMarkingModalProps> = ({ onClose
         variant: "destructive"
       });
     } else if (scanResult.status === 'success') {
-      // Only verify based on student name matching, not fingerprint ID matching
+      // Check if student name matches exactly
       const isStudentNameMatch = student?.name === scanResult.studentName;
       
       if (isStudentNameMatch) {
@@ -95,6 +98,8 @@ const AttendanceMarkingModal: React.FC<AttendanceMarkingModalProps> = ({ onClose
           variant: "destructive"
         });
       }
+    } else {
+      setVerificationStatus(prev => ({ ...prev, [studentId]: 'failed' }));
     }
     
     setShowScanner(null);
@@ -178,7 +183,7 @@ const AttendanceMarkingModal: React.FC<AttendanceMarkingModalProps> = ({ onClose
                       {attendanceData[student.id]?.verified && (
                         <div className="flex items-center space-x-1 mt-1">
                           <Shield className="w-3 h-3 text-green-600" />
-                          <span className="text-xs text-green-600">Verified</span>
+                          <span className="text-xs text-green-600">Fingerprint Verified</span>
                         </div>
                       )}
                       {attendanceData[student.id]?.suspicious && (
@@ -191,14 +196,14 @@ const AttendanceMarkingModal: React.FC<AttendanceMarkingModalProps> = ({ onClose
                   </div>
                   
                   <div className="flex items-center space-x-3">
-                    {/* Status Buttons */}
+                    {/* Status Buttons - Disabled if fingerprint method is active */}
                     <div className="flex space-x-2">
                       <Button
                         size="sm"
                         variant={attendanceData[student.id]?.status === 'present' ? 'default' : 'outline'}
                         onClick={() => handleStatusChange(student.id, 'present')}
                         className={attendanceData[student.id]?.status === 'present' ? 'bg-green-600 hover:bg-green-700' : 'hover:bg-green-50'}
-                        disabled={attendanceData[student.id]?.suspicious}
+                        disabled={attendanceData[student.id]?.method === 'fingerprint' || attendanceData[student.id]?.suspicious}
                       >
                         <CheckCircle className="w-4 h-4 mr-1" />
                         Present
@@ -208,6 +213,7 @@ const AttendanceMarkingModal: React.FC<AttendanceMarkingModalProps> = ({ onClose
                         variant={attendanceData[student.id]?.status === 'absent' ? 'destructive' : 'outline'}
                         onClick={() => handleStatusChange(student.id, 'absent')}
                         className="hover:bg-red-50"
+                        disabled={attendanceData[student.id]?.method === 'fingerprint' && attendanceData[student.id]?.verified}
                       >
                         <XCircle className="w-4 h-4 mr-1" />
                         Absent
@@ -217,14 +223,14 @@ const AttendanceMarkingModal: React.FC<AttendanceMarkingModalProps> = ({ onClose
                         variant={attendanceData[student.id]?.status === 'late' ? 'default' : 'outline'}
                         onClick={() => handleStatusChange(student.id, 'late')}
                         className={attendanceData[student.id]?.status === 'late' ? 'bg-amber-600 hover:bg-amber-700' : 'hover:bg-amber-50'}
-                        disabled={attendanceData[student.id]?.suspicious}
+                        disabled={attendanceData[student.id]?.method === 'fingerprint' || attendanceData[student.id]?.suspicious}
                       >
                         <Clock className="w-4 h-4 mr-1" />
                         Late
                       </Button>
                     </div>
                     
-                    {/* Fingerprint Verification */}
+                    {/* Fingerprint Verification - Required for marking present */}
                     <div className="flex items-center space-x-2">
                       <Button
                         size="sm"
@@ -247,7 +253,7 @@ const AttendanceMarkingModal: React.FC<AttendanceMarkingModalProps> = ({ onClose
                           {verificationStatus[student.id] === 'verified' && 'Verified'}
                           {verificationStatus[student.id] === 'failed' && 'Failed'}
                           {verificationStatus[student.id] === 'suspicious' && 'Suspicious'}
-                          {!verificationStatus[student.id] && 'Scan'}
+                          {!verificationStatus[student.id] && 'Scan Required'}
                         </span>
                       </Button>
                       

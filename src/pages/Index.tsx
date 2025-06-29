@@ -43,6 +43,13 @@ const Index = () => {
     setShowLogin(false);
   };
 
+  const handleLogout = () => {
+    setIsLoggedIn(false);
+    setShowLogin(true);
+    setActiveSection('dashboard');
+    setIsDatabaseAuthenticated(false);
+  };
+
   const renderContent = () => {
     switch (activeSection) {
       case 'dashboard':
@@ -100,7 +107,7 @@ const Index = () => {
     <NotificationProvider>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-teal-50/20">
         <Sidebar activeSection={activeSection} onSectionChange={setActiveSection} />
-        <Header />
+        <Header onLogout={handleLogout} />
         <main className="ml-64 pt-16 p-6 animate-fade-in">
           <div className="max-w-7xl mx-auto">
             {renderContent()}

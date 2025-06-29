@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,10 @@ import {
   Users, 
   Search, 
   Plus,
-  X
+  X,
+  Trash2,
+  Edit,
+  Eye
 } from 'lucide-react';
 import FingerprintEnrollModal from './FingerprintEnrollModal';
 import BulkEnrollModal from './BulkEnrollModal';
@@ -18,7 +22,6 @@ import { useToast } from '@/hooks/use-toast';
 
 const FingerprintManagement: React.FC = () => {
   const [scanningMode, setScanningMode] = useState<'laptop' | 'machine'>('laptop');
-  const [selectedDevice, setSelectedDevice] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [showEnrollModal, setShowEnrollModal] = useState(false);
   const [showBulkEnroll, setShowBulkEnroll] = useState(false);
@@ -56,6 +59,22 @@ const FingerprintManagement: React.FC = () => {
     });
   };
 
+  const handleDeleteFingerprint = (fingerprintId: string) => {
+    setEnrolledFingerprints(enrolledFingerprints.filter(fp => fp.id !== fingerprintId));
+    toast({
+      title: "Fingerprint Deleted",
+      description: "Fingerprint record has been deleted successfully.",
+    });
+  };
+
+  const handleClearAllData = () => {
+    setEnrolledFingerprints([]);
+    toast({
+      title: "All Data Cleared",
+      description: "All fingerprint data has been cleared successfully.",
+    });
+  };
+
   const filteredFingerprints = enrolledFingerprints.filter(fp =>
     fp.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     fp.studentId.toLowerCase().includes(searchTerm.toLowerCase())
@@ -80,6 +99,14 @@ const FingerprintManagement: React.FC = () => {
               <option value="machine">Fingerprint Machine</option>
             </select>
           </div>
+          <Button 
+            variant="outline"
+            onClick={handleClearAllData}
+            className="text-red-600 hover:bg-red-50"
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Clear All Data
+          </Button>
           <Button 
             className="bg-emerald-600 hover:bg-emerald-700"
             onClick={() => setShowBulkEnroll(true)}
@@ -201,8 +228,28 @@ const FingerprintManagement: React.FC = () => {
                     </div>
                   </div>
                   
-                  <div className="text-right">
+                  <div className="flex items-center space-x-2">
                     <Badge variant="outline">{fingerprint.device}</Badge>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => handleDeleteFingerprint(fingerprint.id)}
+                      className="text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
                   </div>
                 </div>
               </div>

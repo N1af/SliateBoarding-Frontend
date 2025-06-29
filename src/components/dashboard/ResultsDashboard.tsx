@@ -3,12 +3,14 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { BookOpen, Trophy, TrendingUp, Users, Eye } from 'lucide-react';
+import { BookOpen, Trophy, TrendingUp, Users, Eye, Edit, Trash2 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 const ResultsDashboard: React.FC = () => {
   const [selectedClass, setSelectedClass] = useState('all');
+  const { toast } = useToast();
 
-  const studentResults = [
+  const [studentResults, setStudentResults] = useState([
     {
       id: 'ST001',
       name: 'Ahmed Hassan',
@@ -30,8 +32,19 @@ const ResultsDashboard: React.FC = () => {
       ],
       average: 90,
       overallGrade: 'A+'
+    },
+    {
+      id: 'ST003',
+      name: 'Omar Abdullah',
+      class: 'Class 6A',
+      exams: [
+        { name: 'Mathematics Test', marks: 75, total: 100, grade: 'B+' },
+        { name: 'Science Quiz', marks: 82, total: 100, grade: 'A-' }
+      ],
+      average: 78.5,
+      overallGrade: 'B+'
     }
-  ];
+  ]);
 
   const classResults = [
     { class: 'Class 6A', students: 24, avgScore: 78.5, topStudent: 'Aisha Mohamed' },
@@ -40,6 +53,22 @@ const ResultsDashboard: React.FC = () => {
     { class: 'Class 7B', students: 23, avgScore: 79.8, topStudent: 'Fatima Khan' },
     { class: 'Class 8A', students: 25, avgScore: 81.2, topStudent: 'Ahmed Hassan' }
   ];
+
+  const handleDeleteResult = (studentId: string) => {
+    setStudentResults(studentResults.filter(student => student.id !== studentId));
+    toast({
+      title: "Result Deleted",
+      description: "Student result has been deleted successfully.",
+    });
+  };
+
+  const handleClearAllData = () => {
+    setStudentResults([]);
+    toast({
+      title: "All Data Cleared",
+      description: "All results data has been cleared successfully.",
+    });
+  };
 
   const getGradeColor = (grade: string) => {
     if (grade.startsWith('A')) return 'bg-green-100 text-green-800';
@@ -52,6 +81,8 @@ const ResultsDashboard: React.FC = () => {
     ? studentResults 
     : studentResults.filter(student => student.class === selectedClass);
 
+  const classes = ['all', ...Array.from(new Set(studentResults.map(student => student.class)))];
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -60,17 +91,24 @@ const ResultsDashboard: React.FC = () => {
           <p className="text-gray-600">View student performance and academic progress</p>
         </div>
         <div className="flex space-x-2">
+          <Button 
+            variant="outline"
+            onClick={handleClearAllData}
+            className="text-red-600 hover:bg-red-50"
+          >
+            <Trash2 className="w-4 h-4 mr-2" />
+            Clear All Data
+          </Button>
           <select
             value={selectedClass}
             onChange={(e) => setSelectedClass(e.target.value)}
             className="p-2 border border-gray-300 rounded-md"
           >
-            <option value="all">All Classes</option>
-            <option value="Class 6A">Class 6A</option>
-            <option value="Class 6B">Class 6B</option>
-            <option value="Class 7A">Class 7A</option>
-            <option value="Class 7B">Class 7B</option>
-            <option value="Class 8A">Class 8A</option>
+            {classes.map(className => (
+              <option key={className} value={className}>
+                {className === 'all' ? 'All Classes' : className}
+              </option>
+            ))}
           </select>
         </div>
       </div>
@@ -79,26 +117,35 @@ const ResultsDashboard: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-blue-600">156</div>
+            <div className="text-2xl font-bold text-blue-600">{filteredResults.length}</div>
             <div className="text-sm text-gray-600">Total Students</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-green-600">82.3%</div>
+            <div className="text-2xl font-bold text-green-600">
+              {filteredResults.length > 0 ? 
+                (filteredResults.reduce((acc, s) => acc + s.average, 0) / filteredResults.length).toFixed(1) + '%'
+                : '0%'
+              }
+            </div>
             <div className="text-sm text-gray-600">Average Score</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-emerald-600">45</div>
+            <div className="text-2xl font-bold text-emerald-600">
+              {filteredResults.filter(s => s.overallGrade.startsWith('A')).length}
+            </div>
             <div className="text-sm text-gray-600">A Grade Students</div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 text-center">
-            <div className="text-2xl font-bold text-amber-600">12</div>
-            <div className="text-sm text-gray-600">Pending Results</div>
+            <div className="text-2xl font-bold text-amber-600">
+              {selectedClass === 'all' ? classes.length - 1 : 1}
+            </div>
+            <div className="text-sm text-gray-600">Classes</div>
           </CardContent>
         </Card>
       </div>
@@ -113,7 +160,9 @@ const ResultsDashboard: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {classResults.map((classData) => (
+            {classResults
+              .filter(classData => selectedClass === 'all' || classData.class === selectedClass)
+              .map((classData) => (
               <div key={classData.class} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between">
                   <div>
@@ -169,9 +218,22 @@ const ResultsDashboard: React.FC = () => {
                         {student.overallGrade}
                       </Badge>
                     </div>
-                    <Button variant="ghost" size="sm">
-                      <Eye className="w-4 h-4" />
-                    </Button>
+                    <div className="flex space-x-2">
+                      <Button variant="ghost" size="sm">
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="sm">
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => handleDeleteResult(student.id)}
+                        className="text-red-600 hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
                 
