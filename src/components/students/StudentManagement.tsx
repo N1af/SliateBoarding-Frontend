@@ -19,72 +19,67 @@ import AddStudentForm from './AddStudentForm';
 import StudentDetailsModal from './StudentDetailsModal';
 import CourseCompletionModal from './CourseCompletionModal';
 import { useToast } from '@/hooks/use-toast';
+import { useEffect } from 'react';
+import axios from 'axios';
+import { Student, CourseCompletionData } from '../types/student';
+
+// In a shared types file or inside StudentManagement.tsx
+
 
 const StudentManagement: React.FC = () => {
+  
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
-  const [selectedStudent, setSelectedStudent] = useState<any>(null);
+  const [selectedStudent, setSelectedStudent] = useState<Student>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [showCourseCompletion, setShowCourseCompletion] = useState(false);
   const [filterClass, setFilterClass] = useState('');
   const { toast } = useToast();
+  
+  const [students, setStudents] = useState<Student[]>([]);
 
-  const [students, setStudents] = useState([
-    {
-      id: 'ST001',
-      name: 'Ahmed Hassan',
-      class: 'Class 8A',
-      age: 14,
-      guardianName: 'Hassan Ali',
-      phone: '+91 98765 43210',
-      email: 'hassan.ahmed@email.com',
-      address: 'Daryaganj, Delhi',
-      feeStatus: 'paid',
-      admissionDate: '2023-04-15',
-      attendance: 92
-    },
-    {
-      id: 'ST002',
-      name: 'Fatima Khan',
-      class: 'Class 7B',
-      age: 13,
-      guardianName: 'Mohammed Khan',
-      phone: '+91 87654 32109',
-      email: 'khan.fatima@email.com',
-      address: 'Jamia Nagar, Delhi',
-      feeStatus: 'pending',
-      admissionDate: '2023-05-20',
-      attendance: 88
-    },
-    {
-      id: 'ST003',
-      name: 'Omar Abdullah',
-      class: 'Class 9A',
-      age: 15,
-      guardianName: 'Abdullah Sheikh',
-      phone: '+91 76543 21098',
-      email: 'omar.abdullah@email.com',
-      address: 'Old Delhi',
-      feeStatus: 'paid',
-      admissionDate: '2023-03-10',
-      attendance: 95
-    }
-  ]);
+  useEffect(() => {
+    fetch('http://localhost:5000/api/students')
+      .then(res => res.json())
+      .then((data: Student[]) => setStudents(data))
+      .catch(err => {
+        console.error("Failed to fetch students", err);
+        toast({
+          title: "Fetch Error",
+          description: "Could not load student data.",
+          variant: "destructive"
+        });
+      });
+  }, [toast]); // ✅ include toast in dependency array
 
-  const handleCompleteStudentCourse = (student: any) => {
+  const handleCompleteStudentCourse = (student: Student) => {
     setSelectedStudent(student);
     setShowCourseCompletion(true);
   };
 
-  const handleCourseCompletion = (completionData: any) => {
-    // Remove student from current students and add to past students
-    setStudents(students.filter(s => s.id !== completionData.originalId));
-    
-    toast({
-      title: "Student Graduated",
-      description: `${completionData.name} has been successfully moved to past students with grade ${completionData.finalGrade}.`,
-    });
+
+  
+
+  const handleCourseCompletion = async (completionData: CourseCompletionData) => {
+    try {
+      await axios.post('http://localhost:5000/api/graduates/graduate', completionData);
+      setStudents(prev => prev.filter(s => s.id !== completionData.originalId));
+      
+      toast({
+        title: 'Student Graduated',
+        description: `${completionData.name} has been added to alumni.`,
+      });
+    } catch (error) {
+      console.error('Error saving graduate:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to save graduate to the system.',
+        variant: 'destructive',
+      });
+    }
   };
+
+
 
   const filteredStudents = students.filter(student => {
     const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -94,20 +89,39 @@ const StudentManagement: React.FC = () => {
     return matchesSearch && matchesFilter;
   });
 
-  const handleAddStudent = (newStudent: any) => {
-    setStudents([...students, newStudent]);
-    toast({
-      title: "Student Added",
-      description: `${newStudent.name} has been successfully added to the system.`,
+  const handleAddStudent = (newStudent: Student) => {
+    fetch('http://localhost:5000/api/students', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(newStudent)
+    })
+    .then(res => res.json())
+    .then(() => {
+      setStudents(prev => [...prev, newStudent]);
+      toast({
+        title: "Student Added",
+        description: `${newStudent.name} has been successfully added.`,
+      });
+    })
+    .catch(err => {
+      console.error("Add student failed", err);
+      toast({
+        title: "Error",
+        description: "Could not add student.",
+        variant: "destructive"
+      });
     });
   };
 
-  const handleViewStudent = (student: any) => {
+
+  const handleViewStudent = (student: Student) => {
     setSelectedStudent(student);
     setShowDetails(true);
   };
 
-  const handleEditStudent = (student: any) => {
+  const handleEditStudent = (student: Student) => {
     toast({
       title: "Edit Student",
       description: `Edit functionality for ${student.name} - Coming soon!`,

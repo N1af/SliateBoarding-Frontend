@@ -21,7 +21,7 @@ const FeePaymentModal: React.FC<FeePaymentModalProps> = ({ student, onClose, onP
     remarks: ''
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const payment = {
       studentId: student.studentId,
@@ -32,9 +32,10 @@ const FeePaymentModal: React.FC<FeePaymentModalProps> = ({ student, onClose, onP
       paymentDate: new Date().toISOString().split('T')[0],
       receiptNo: `RC${Date.now()}`
     };
-    onPayment(payment);
+    onPayment(payment); // this function will do the API call now
     onClose();
   };
+
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPaymentData({

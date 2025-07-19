@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// # AttendanceManagement.tsx
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -24,44 +25,23 @@ const AttendanceManagement: React.FC = () => {
   const [showFingerprintSetup, setShowFingerprintSetup] = useState(false);
   const { toast } = useToast();
 
-  const [attendanceData, setAttendanceData] = useState([
-    {
-      id: 'ST001',
-      name: 'Ahmed Hassan',
-      class: 'Class 8A',
-      timeIn: '08:15 AM',
-      timeOut: '03:30 PM',
-      status: 'present',
-      method: 'fingerprint'
-    },
-    {
-      id: 'ST002',
-      name: 'Fatima Khan',
-      class: 'Class 7B',
-      timeIn: '08:20 AM',
-      timeOut: '03:25 PM',
-      status: 'present',
-      method: 'manual'
-    },
-    {
-      id: 'ST003',
-      name: 'Omar Abdullah',
-      class: 'Class 9A',
-      timeIn: null,
-      timeOut: null,
-      status: 'absent',
-      method: null
-    },
-    {
-      id: 'ST004',
-      name: 'Aisha Begum',
-      class: 'Class 6A',
-      timeIn: '09:45 AM',
-      timeOut: '03:30 PM',
-      status: 'late',
-      method: 'fingerprint'
-    }
-  ]);
+  const [attendanceData, setAttendanceData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    const fetchAttendance = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/attendance');
+        const data = await res.json();
+        setAttendanceData(data);
+      } catch (err) {
+        console.error('Failed to load attendance:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAttendance();
+  }, []);
 
   const filteredAttendance = attendanceData.filter(record =>
     record.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -103,6 +83,13 @@ const AttendanceManagement: React.FC = () => {
   const lateCount = attendanceData.filter(r => r.status === 'late').length;
   const totalStudents = attendanceData.length;
   const attendanceRate = ((presentCount + lateCount) / totalStudents * 100).toFixed(1);
+  if (loading) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="bg-white p-6 rounded shadow-md">Loading student data...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">

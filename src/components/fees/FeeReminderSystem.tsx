@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -11,18 +11,39 @@ interface FeeReminderSystemProps {
 }
 
 const FeeReminderSystem: React.FC<FeeReminderSystemProps> = ({ onClose }) => {
+  const [pendingStudents, setPendingStudents] = useState<any[]>([]);
   const { toast } = useToast();
-  const [pendingStudents] = useState([
-    { id: 'ST002', name: 'Fatima Khan', class: 'Class 7B', pendingAmount: 4000, phone: '+91 87654 32109', email: 'khan.fatima@email.com', daysOverdue: 15 },
-    { id: 'ST003', name: 'Omar Abdullah', class: 'Class 9A', pendingAmount: 18000, phone: '+91 76543 21098', email: 'omar.abdullah@email.com', daysOverdue: 25 },
-  ]);
+  useEffect(() => {
+    fetch('http://localhost:5000/api/reminders/pending-fees')
+      .then(res => res.json())
+      .then(data => {
+        console.log("Fetched pending students:", data);
+        setPendingStudents(data);
+      })
+      .catch(err => console.error("Error fetching pending students:", err));
+  }, []);
 
   const sendSMSReminder = (student: any) => {
-    toast({
-      title: "SMS Sent",
-      description: `Fee reminder SMS sent to ${student.name} (${student.phone})`,
+  fetch('http://localhost:5000/api/reminders/send-sms', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ studentId: student.id, phone: student.phone })
+  })
+    .then(res => res.json())
+    .then(() => {
+      toast({
+        title: "SMS Sent",
+        description: `Fee reminder SMS sent to ${student.name} (${student.phone})`,
+      });
+    })
+    .catch(() => {
+      toast({
+        title: "SMS Failed",
+        description: `Could not send SMS to ${student.name}`,
+      });
     });
-  };
+};
+
 
   const sendEmailReminder = (student: any) => {
     toast({

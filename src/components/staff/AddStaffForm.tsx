@@ -1,12 +1,16 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { X, Save } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 
 interface AddStaffFormProps {
   onClose: () => void;
@@ -26,16 +30,51 @@ const AddStaffForm: React.FC<AddStaffFormProps> = ({ onClose, onSave }) => {
     joiningDate: new Date().toISOString().split('T')[0]
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const { toast } = useToast();
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     const newStaff = {
       id: `SF${String(Date.now()).slice(-3)}`,
       ...formData,
       salary: parseInt(formData.salary),
       status: 'active'
     };
-    onSave(newStaff);
-    onClose();
+
+    try {
+      const response = await fetch('http://localhost:5000/api/staff/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newStaff)
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        toast({
+          title: 'Staff Added',
+          description: `${newStaff.name} has been successfully added.`
+        });
+        onSave(newStaff);
+        onClose();
+      } else {
+        toast({
+          title: 'Error',
+          description: result.error || 'Failed to add staff.',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      toast({
+        title: 'Server Error',
+        description: 'Could not connect to backend.',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -59,101 +98,40 @@ const AddStaffForm: React.FC<AddStaffFormProps> = ({ onClose, onSave }) => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="name">Full Name</Label>
-                <Input
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                />
+                <Input id="name" name="name" value={formData.name} onChange={handleChange} required />
               </div>
               <div>
                 <Label htmlFor="designation">Designation</Label>
-                <Input
-                  id="designation"
-                  name="designation"
-                  value={formData.designation}
-                  onChange={handleChange}
-                  placeholder="e.g., Islamic Studies Teacher"
-                  required
-                />
+                <Input id="designation" name="designation" value={formData.designation} onChange={handleChange} required />
               </div>
               <div>
                 <Label htmlFor="department">Department</Label>
-                <Input
-                  id="department"
-                  name="department"
-                  value={formData.department}
-                  onChange={handleChange}
-                  placeholder="e.g., Islamic Studies"
-                  required
-                />
+                <Input id="department" name="department" value={formData.department} onChange={handleChange} required />
               </div>
               <div>
                 <Label htmlFor="experience">Experience</Label>
-                <Input
-                  id="experience"
-                  name="experience"
-                  value={formData.experience}
-                  onChange={handleChange}
-                  placeholder="e.g., 5 years"
-                  required
-                />
+                <Input id="experience" name="experience" value={formData.experience} onChange={handleChange} required />
               </div>
               <div>
                 <Label htmlFor="phone">Phone</Label>
-                <Input
-                  id="phone"
-                  name="phone"
-                  value={formData.phone}
-                  onChange={handleChange}
-                  placeholder="+91 98765 43210"
-                  required
-                />
+                <Input id="phone" name="phone" value={formData.phone} onChange={handleChange} required />
               </div>
               <div>
                 <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                />
+                <Input id="email" name="email" type="email" value={formData.email} onChange={handleChange} required />
               </div>
               <div>
                 <Label htmlFor="salary">Monthly Salary (₹)</Label>
-                <Input
-                  id="salary"
-                  name="salary"
-                  type="number"
-                  value={formData.salary}
-                  onChange={handleChange}
-                  required
-                />
+                <Input id="salary" name="salary" type="number" value={formData.salary} onChange={handleChange} required />
               </div>
               <div>
                 <Label htmlFor="joiningDate">Joining Date</Label>
-                <Input
-                  id="joiningDate"
-                  name="joiningDate"
-                  type="date"
-                  value={formData.joiningDate}
-                  onChange={handleChange}
-                  required
-                />
+                <Input id="joiningDate" name="joiningDate" type="date" value={formData.joiningDate} onChange={handleChange} required />
               </div>
             </div>
             <div>
               <Label htmlFor="address">Address</Label>
-              <Textarea
-                id="address"
-                name="address"
-                value={formData.address}
-                onChange={handleChange}
-                required
-              />
+              <Textarea id="address" name="address" value={formData.address} onChange={handleChange} required />
             </div>
             <div className="flex justify-end space-x-2 pt-4">
               <Button type="button" variant="outline" onClick={onClose}>

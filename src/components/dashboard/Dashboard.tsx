@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { ReactElement } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import StatsCard from './StatsCard';
@@ -18,7 +18,13 @@ interface DashboardProps {
   onSectionChange: (section: string) => void;
   onDatabaseAccess: () => void;
 }
-
+type QuickAction = {
+  title: string;
+  section?: string;
+  action?: string;
+  icon: React.ElementType;
+  color: string;
+};
 const Dashboard: React.FC<DashboardProps> = ({ onSectionChange, onDatabaseAccess }) => {
   const stats = [
     { title: 'Total Students', value: '156', icon: Users, color: 'blue' },
@@ -36,7 +42,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onSectionChange, onDatabaseAccess
     { title: 'Database Access', action: 'database', icon: Database, color: 'red' }
   ];
 
-  const handleQuickAction = (item: any) => {
+  const handleQuickAction = (item: QuickAction) => {
     if (item.action === 'database') {
       onDatabaseAccess();
     } else {

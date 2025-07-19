@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios'; // <-- Added missing import
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,90 +13,50 @@ import {
   Award,
   Phone,
   Mail,
-  MapPin,
   BookOpen
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { PastStudent } from '../types/student';
 
 const PastStudentsManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
 
-  const [pastStudents] = useState([
-    {
-      id: 'PST001',
-      name: 'Abdullah Rahman',
-      class: 'Class 10',
-      graduationYear: '2023',
-      phone: '+91 98765 43210',
-      email: 'abdullah@email.com',
-      address: 'Jamia Nagar, Delhi',
-      finalGrade: 'A+',
-      attendance: 96,
-      courseCompleted: 'Islamic Studies & Modern Education',
-      currentStatus: 'Higher Education',
-      achievements: ['Best Student Award', 'Perfect Attendance'],
-      graduationDate: '2023-03-15',
-      guardian: 'Rahman Ali'
-    },
-    {
-      id: 'PST002',
-      name: 'Zainab Khatoon',
-      class: 'Class 12',
-      graduationYear: '2022',
-      phone: '+91 87654 32109',
-      email: 'zainab@email.com',
-      address: 'Old Delhi',
-      finalGrade: 'A',
-      attendance: 92,
-      courseCompleted: 'Arabic Literature & Islamic Studies',
-      currentStatus: 'Teaching',
-      achievements: ['Arabic Excellence Award', 'Leadership Award'],
-      graduationDate: '2022-04-20',
-      guardian: 'Mohammed Khatoon'
-    },
-    {
-      id: 'PST003',
-      name: 'Usman Ahmed',
-      class: 'Class 11',
-      graduationYear: '2023',
-      phone: '+91 76543 21098',
-      email: 'usman@email.com',
-      address: 'Daryaganj, Delhi',
-      finalGrade: 'B+',
-      attendance: 88,
-      courseCompleted: 'Quranic Studies & General Education',
-      currentStatus: 'Working',
-      achievements: ['Community Service Award'],
-      graduationDate: '2023-05-10',
-      guardian: 'Ahmed Hassan'
-    },
-    {
-      id: 'PST004',
-      name: 'Hafsa Begum',
-      class: 'Class 9',
-      graduationYear: '2024',
-      phone: '+91 65432 10987',
-      email: 'hafsa@email.com',
-      address: 'Nizamuddin, Delhi',
-      finalGrade: 'A',
-      attendance: 94,
-      courseCompleted: 'Hifz Program & Academic Studies',
-      currentStatus: 'Continuing Education',
-      achievements: ['Hifz Completion Certificate', 'Academic Excellence'],
-      graduationDate: '2024-02-28',
-      guardian: 'Begum Fatima'
-    }
-  ]);
+  const [pastStudents, setPastStudents] = useState<PastStudent[]>([]);
+
+  useEffect(() => {
+    axios.get<PastStudent[]>('http://localhost:5000/api/graduates')
+      .then(res => {
+        const parsed = res.data.map((student: PastStudent) => ({
+          ...student,
+          achievements: typeof student.achievements === 'string' 
+            ? student.achievements.split(',').map(s => s.trim()) 
+            : Array.isArray(student.achievements) 
+              ? student.achievements 
+              : [],
+        }));
+        setPastStudents(parsed);
+      })
+      .catch(err => {
+        console.error('Failed to fetch past students:', err);
+        toast({
+          title: 'Fetch Error',
+          description: 'Could not load alumni data.',
+          variant: 'destructive',
+        });
+      });
+  }, [toast]);
+
+  const normalizedSearchTerm = searchTerm.toLowerCase();
 
   const filteredStudents = pastStudents.filter(student => 
-    student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    student.name.toLowerCase().includes(normalizedSearchTerm) ||
+    student.id.toLowerCase().includes(normalizedSearchTerm) ||
     student.graduationYear.includes(searchTerm) ||
-    student.courseCompleted.toLowerCase().includes(searchTerm.toLowerCase())
+    student.courseCompleted.toLowerCase().includes(normalizedSearchTerm)
   );
 
-  const handleViewDetails = (student: any) => {
+  const handleViewDetails = (student: PastStudent) => {
     toast({
       title: "Student Details",
       description: `Viewing complete record for ${student.name} (${student.graduationYear})`,
@@ -148,6 +109,10 @@ const PastStudentsManagement: React.FC = () => {
     if (grade.startsWith('C')) return 'bg-amber-100 text-amber-800';
     return 'bg-gray-100 text-gray-800';
   };
+
+  const avgAttendance = pastStudents.length > 0
+    ? Math.round(pastStudents.reduce((acc, s) => acc + (s.attendance ?? 0), 0) / pastStudents.length)
+    : 0;
 
   return (
     <div className="space-y-6">
@@ -202,7 +167,7 @@ const PastStudentsManagement: React.FC = () => {
           <CardContent className="p-4 text-center">
             <Award className="w-8 h-8 text-amber-600 mx-auto mb-2" />
             <div className="text-2xl font-bold text-amber-600">
-              {Math.round(pastStudents.reduce((acc, s) => acc + s.attendance, 0) / pastStudents.length)}%
+              {avgAttendance}%
             </div>
             <div className="text-sm text-gray-600">Avg Final Attendance</div>
           </CardContent>
@@ -291,11 +256,12 @@ const PastStudentsManagement: React.FC = () => {
                       <Award className="w-4 h-4 text-amber-600" />
                       <span className="text-sm font-medium text-gray-700">Achievements:</span>
                       <div className="flex flex-wrap gap-1">
-                        {student.achievements.map((achievement, index) => (
+                        {(Array.isArray(student.achievements) ? student.achievements : student.achievements.split(',')).map((achievement, index) => (
                           <Badge key={index} variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200">
-                            {achievement}
+                            {achievement.trim()}
                           </Badge>
                         ))}
+
                       </div>
                     </div>
                   </div>

@@ -17,62 +17,26 @@ import {
 } from 'lucide-react';
 import AddStaffForm from './AddStaffForm';
 import { useToast } from '@/hooks/use-toast';
+import { useEffect } from 'react';
 
 const StaffManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddForm, setShowAddForm] = useState(false);
   const { toast } = useToast();
+  useEffect(() => {
+    const fetchStaff = async () => {
+      try {
+        const res = await fetch('http://localhost:5000/api/staff');
+        const data = await res.json();
+        setStaff(data);
+      } catch (error) {
+        console.error('Error fetching staff:', error);
+      }
+    };
 
-  const [staff, setStaff] = useState([
-    {
-      id: 'SF001',
-      name: 'Dr. Mohd. Rashid',
-      designation: 'Principal',
-      department: 'Administration',
-      phone: '+91 98765 43210',
-      email: 'rashid.principal@madrasah.edu',
-      joiningDate: '2020-01-15',
-      salary: 75000,
-      status: 'active',
-      experience: '15 years'
-    },
-    {
-      id: 'SF002',
-      name: 'Ustad Ahmed Qureshi',
-      designation: 'Islamic Studies Teacher',
-      department: 'Islamic Studies',
-      phone: '+91 87654 32109',
-      email: 'ahmed.qureshi@madrasah.edu',
-      joiningDate: '2021-06-20',
-      salary: 45000,
-      status: 'active',
-      experience: '8 years'
-    },
-    {
-      id: 'SF003',
-      name: 'Prof. Fatima Begum',
-      designation: 'Arabic Teacher',
-      department: 'Languages',
-      phone: '+91 76543 21098',
-      email: 'fatima.begum@madrasah.edu',
-      joiningDate: '2022-03-10',
-      salary: 42000,
-      status: 'active',
-      experience: '10 years'
-    },
-    {
-      id: 'SF004',
-      name: 'Mr. Salman Khan',
-      designation: 'Mathematics Teacher',
-      department: 'Sciences',
-      phone: '+91 65432 10987',
-      email: 'salman.khan@madrasah.edu',
-      joiningDate: '2023-01-15',
-      salary: 38000,
-      status: 'active',
-      experience: '5 years'
-    }
-  ]);
+    fetchStaff();
+  }, []);
+  const [staff, setStaff] = useState<any[]>([]);
 
   const filteredStaff = staff.filter(member =>
     member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

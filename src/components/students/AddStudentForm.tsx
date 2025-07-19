@@ -8,10 +8,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { X, Save, Fingerprint, CheckCircle } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Student } from '../types/student';
 
 interface AddStudentFormProps {
   onClose: () => void;
-  onSave: (student: any) => void;
+  onSave: (student: Student) => void;
 }
 
 const AddStudentForm: React.FC<AddStudentFormProps> = ({ onClose, onSave }) => {
@@ -30,9 +31,9 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onClose, onSave }) => {
   const [fingerprintData, setFingerprintData] = useState<string | null>(null);
   const { toast } = useToast();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (fingerprintStatus !== 'enrolled') {
       toast({
         title: "Fingerprint Required",
@@ -41,25 +42,66 @@ const AddStudentForm: React.FC<AddStudentFormProps> = ({ onClose, onSave }) => {
       });
       return;
     }
-
-    const newStudent = {
-      id: `ST${String(Date.now()).slice(-3)}`,
-      ...formData,
-      age: parseInt(formData.age),
-      admissionDate: new Date().toISOString().split('T')[0],
-      attendance: 0,
-      fingerprintId: fingerprintData
+    
+    const newStudent: Student = {
+      id: `ST${String(Date.now()).slice(-4)}`,
+      name: formData.name,
+      class: formData.class,
+      age: Number(formData.age),
+      guardianName: formData.guardianName,
+      phone: formData.phone,
+      email: formData.email,
+      address: formData.address,
+      feeStatus: 'pending',
+      admissionDate: new Date().toISOString(), // current date/time as ISO string
+      attendance: 0,                           // starting attendance count as zero
+      fingerprint: fingerprintData || null,
+      fees: 25000,
+      paid: 0,
     };
-    onSave(newStudent);
-    onClose();
+
+    try {
+      const res = await fetch('http://localhost:5000/api/students', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(newStudent)
+      });
+
+      if (res.ok) {
+        onSave(newStudent); // This will update the UI
+        toast({
+          title: "Student Added",
+          description: `${newStudent.name} has been added successfully.`,
+        });
+        onClose();
+      } else {
+        const error = await res.json();
+        toast({
+          title: "Error",
+          description: error.message || 'Failed to add student.',
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: 'Unable to connect to the server.',
+        variant: "destructive"
+      });
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [name]: name === 'age' ? Number(value) : value
     });
   };
+
+
 
   const handleFingerprintEnroll = () => {
     setFingerprintStatus('scanning');

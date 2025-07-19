@@ -20,28 +20,44 @@ import {
 } from 'lucide-react';
 import DatabasePermissionModal from './DatabasePermissionModal';
 import { useToast } from '@/hooks/use-toast';
+import { useEffect } from 'react';
 
 const DatabaseManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [hasAccess, setHasAccess] = useState(false);
   const [showPermissionModal, setShowPermissionModal] = useState(false);
   const { toast } = useToast();
+  
+  
 
-  const [allStudents, setAllStudents] = useState([
-    { id: 'ST001', name: 'Ahmed Hassan', class: 'Class 8A', fees: 25000, paid: 25000, fingerprint: 'FP001', phone: '+94 77 123 4567' },
-    { id: 'ST002', name: 'Fatima Khan', class: 'Class 7B', fees: 22500, paid: 15000, fingerprint: 'FP002', phone: '+94 71 234 5678' },
-    { id: 'ST003', name: 'Omar Abdullah', class: 'Class 9A', fees: 27500, paid: 27500, fingerprint: 'FP003', phone: '+94 76 345 6789' }
-  ]);
+  // Fetch Students
+  useEffect(() => {
+    fetch('http://localhost:5000/api/students')
+      .then(res => res.json())
+      .then(data => setAllStudents(data))
+      .catch(err => console.error('Failed to fetch students:', err));
+  }, []);
 
-  const [allStaff, setAllStaff] = useState([
-    { id: 'SF001', name: 'Ustaz Ahmad', position: 'Head Teacher', salary: 125000, department: 'Islamic Studies', phone: '+94 77 987 6543' },
-    { id: 'SF002', name: 'Sister Khadijah', position: 'Arabic Teacher', salary: 100000, department: 'Languages', phone: '+94 71 876 5432' }
-  ]);
+  // Fetch Staff
+  useEffect(() => {
+    fetch('http://localhost:5000/api/staff')
+      .then(res => res.json())
+      .then(data => setAllStaff(data))
+      .catch(err => console.error('Failed to fetch staff:', err));
+  }, []);
 
-  const [allFees, setAllFees] = useState([
-    { id: 'FE001', studentName: 'Ahmed Hassan', amount: 25000, status: 'paid', date: '2024-01-15' },
-    { id: 'FE002', studentName: 'Fatima Khan', amount: 7500, status: 'pending', date: '2024-01-20' }
-  ]);
+  // Fetch Fees
+  useEffect(() => {
+    fetch('http://localhost:5000/api/fees')
+      .then(res => res.json())
+      .then(data => setAllFees(data))
+      .catch(err => console.error('Failed to fetch fees:', err));
+  }, []);
+
+  const [allStudents, setAllStudents] = useState([]);
+  const [allStaff, setAllStaff] = useState([]);
+  const [allFees, setAllFees] = useState([]);
+
 
   const handleRequestAccess = () => {
     setShowPermissionModal(true);
@@ -51,7 +67,12 @@ const DatabaseManagement: React.FC = () => {
     setHasAccess(true);
   };
 
-  const handleDeleteRecord = (type: string, id: string) => {
+  const handleDeleteRecord = async (type: string, id: string) => {
+  try {
+    await fetch(`http://localhost:5000/api/${type}/${id}`, {
+      method: 'DELETE',
+    });
+
     if (type === 'students') {
       setAllStudents(prev => prev.filter(s => s.id !== id));
     } else if (type === 'staff') {
@@ -59,13 +80,17 @@ const DatabaseManagement: React.FC = () => {
     } else if (type === 'fees') {
       setAllFees(prev => prev.filter(f => f.id !== id));
     }
-    
+
     toast({
       title: "Record Deleted",
       description: `${type} record has been permanently deleted.`,
       variant: "destructive"
     });
-  };
+  } catch (err) {
+    console.error(`Failed to delete ${type} record:`, err);
+  }
+};
+
 
   const handleClearAllRecords = (type: string) => {
     if (window.confirm(`Are you sure you want to delete ALL ${type} records? This action cannot be undone.`)) {

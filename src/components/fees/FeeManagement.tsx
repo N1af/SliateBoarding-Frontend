@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,6 +20,7 @@ import {
 import FeePaymentModal from './FeePaymentModal';
 import FeeReminderSystem from './FeeReminderSystem';
 import { useToast } from '@/hooks/use-toast';
+import axios from 'axios';
 
 const FeeManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -27,72 +28,61 @@ const FeeManagement: React.FC = () => {
   const [showReminderSystem, setShowReminderSystem] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const { toast } = useToast();
+  const fetchFees = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/fees');
+        const data = await response.json();
+        setFeeRecords(data);
+      } catch (error) {
+        console.error('Error fetching fees:', error);
+      }
+    };
+  useEffect(() => {
+    fetchFees();
+  }, []);
 
-  const [feeRecords, setFeeRecords] = useState([
-    {
-      id: 'FE001',
-      studentName: 'Ahmed Hassan',
-      studentId: 'ST001',
-      class: 'Class 8A',
-      totalFee: 15000,
-      paidAmount: 15000,
-      pendingAmount: 0,
-      dueDate: '2024-01-15',
-      status: 'paid',
-      paymentDate: '2024-01-10'
-    },
-    {
-      id: 'FE002',
-      studentName: 'Fatima Khan',
-      studentId: 'ST002',
-      class: 'Class 7B',
-      totalFee: 12000,
-      paidAmount: 8000,
-      pendingAmount: 4000,
-      dueDate: '2024-01-15',
-      status: 'partial',
-      paymentDate: '2023-12-20'
-    },
-    {
-      id: 'FE003',
-      studentName: 'Omar Abdullah',
-      studentId: 'ST003',
-      class: 'Class 9A',
-      totalFee: 18000,
-      paidAmount: 0,
-      pendingAmount: 18000,
-      dueDate: '2024-01-15',
-      status: 'pending',
-      paymentDate: null
-    }
-  ]);
+  const [feeRecords, setFeeRecords] = useState<any[]>([]);
 
   const filteredRecords = feeRecords.filter(record =>
     record.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     record.studentId.toLowerCase().includes(searchTerm.toLowerCase()) ||
     record.class.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  const openPaymentModal = (student: any) => {
+    setSelectedStudent(student);
+    setShowPaymentModal(true);
+  };
 
-  const handlePayment = (payment: any) => {
-    setFeeRecords(prev => prev.map(record => {
-      if (record.studentId === payment.studentId) {
-        const newPaidAmount = record.paidAmount + payment.amount;
-        const newPendingAmount = record.totalFee - newPaidAmount;
-        return {
-          ...record,
-          paidAmount: newPaidAmount,
-          pendingAmount: newPendingAmount,
-          status: newPendingAmount === 0 ? 'paid' : 'partial',
-          paymentDate: payment.paymentDate
-        };
+  const closePaymentModal = () => {
+    setShowPaymentModal(false);
+    setSelectedStudent(null);
+  };
+
+  const handlePayment = async (payment: any) => {
+    try {
+      const response = await axios.post('http://localhost:5000/api/fees/pay', payment);
+      
+      if (response.data.success) {
+        toast({
+          title: 'Payment Success',
+          description: 'Payment recorded successfully.',
+        });
+        fetchFees(); // refresh data
+      } else {
+        toast({
+          title: 'Payment Failed',
+          description: 'Failed to record payment. Please try again.',
+          variant: 'destructive'
+        });
       }
-      return record;
-    }));
-    
-    toast({
-      title: "Payment Recorded",
-      description: `Payment of RS.${payment.amount} recorded for ${payment.studentName}`,
-    });
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast({
+        title: 'Error',
+        description: 'Error while recording payment.',
+        variant: 'destructive'
+      });
+    }
   };
 
   const handleExport = () => {
@@ -346,9 +336,9 @@ const FeeManagement: React.FC = () => {
       </Card>
 
       {/* Modals */}
-      {showPaymentModal && (
+      {showPaymentModal && selectedStudent && (
         <FeePaymentModal
-          student={selectedStudent || feeRecords.find(r => r.status !== 'paid')}
+          student={selectedStudent}
           onClose={() => {
             setShowPaymentModal(false);
             setSelectedStudent(null);
@@ -356,6 +346,7 @@ const FeeManagement: React.FC = () => {
           onPayment={handlePayment}
         />
       )}
+
 
       {showReminderSystem && (
         <FeeReminderSystem
